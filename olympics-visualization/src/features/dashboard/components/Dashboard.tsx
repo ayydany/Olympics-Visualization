@@ -2,11 +2,11 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import * as d3 from "d3";
 import { Responsive as ResponsiveGridLayout, Layouts } from "react-grid-layout";
 
-import Header from "./Header";
-import Bubblechart from "./Bubblechart";
-import Linechart from "./Linechart";
-import Scatterplot from "./Scatterplot";
-import Worldmap from "./Worldmap";
+import Header from "@/features/dashboard/components/Header";
+import Bubblechart from "@/features/dashboard/components/Bubblechart";
+import Linechart from "@/features/dashboard/components/Linechart";
+import Scatterplot from "@/features/dashboard/components/Scatterplot";
+import Worldmap from "@/features/dashboard/components/Worldmap";
 import Tooltip from "@/components/Tooltip";
 import dictionaryDataCsv from "@/data/dictionary.csv";
 import countryDataCsv from "@/data/summer_year_country_event.csv";

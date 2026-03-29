@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import * as d3 from "d3";
-import useYearStore from "../../store/useYearStore";
+import useYearStore from "@/stores/useYearStore";
 import "./Linechart.css";
 
 const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
