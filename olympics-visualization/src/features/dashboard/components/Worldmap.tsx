@@ -122,12 +122,11 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState }) 
         });
       })
       .on("mousemove", (event) => {
-        setTooltipState({
-          show: true,
-          content: "", // Content is already set on mouseover
+        setTooltipState((prev: any) => ({
+          ...prev,
           x: event.pageX,
           y: event.pageY
-        } as any); // Type assertion or fix TooltipState interface
+        }));
       })
       .on("mouseout", function() {
         d3.select(this).style("stroke", "#11111b").style("stroke-width", 0.5); // Crust

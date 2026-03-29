@@ -204,6 +204,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
     };
 
     bubbleNodes.select(".bubble-circle")
+      .style("cursor", "pointer") // Add pointer cursor
       .on("mouseover", function (event, d) {
         showTooltip(event, d);
         d3.select(this)
@@ -214,12 +215,11 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
           .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
-        setTooltipState({
-          show: true,
-          content: "", // already set
+        setTooltipState((prev: any) => ({
+          ...prev,
           x: event.pageX,
           y: event.pageY
-        } as any);
+        }));
       })
       .on("mouseout", function (event, d) {
         hideTooltip();

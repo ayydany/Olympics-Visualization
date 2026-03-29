@@ -11,7 +11,7 @@ import {
   Typography,
   Tooltip as MuiTooltip
 } from "@mui/material";
-import { Settings as SettingsIcon } from "@mui/icons-material";
+import { Settings as SettingsIcon, DragIndicator as DragIcon } from "@mui/icons-material";
 
 import Header from "@/features/dashboard/components/Header";
 import Bubblechart from "@/features/dashboard/components/Bubblechart";
@@ -54,7 +54,7 @@ const MainComponent: React.FC = () => {
     y: 0,
   });
 
-  const updateTooltipState = React.useCallback((state: TooltipState) => {
+  const updateTooltipState = React.useCallback((state: TooltipState | ((prev: TooltipState) => TooltipState)) => {
     setTooltipState(state);
   }, []);
 
@@ -257,32 +257,32 @@ const MainComponent: React.FC = () => {
           >
             {visibleCharts.worldmap && (
               <div key="worldmap" className="vis-cell group">
-                <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
-                  <span className="leading-none pointer-events-none">⊹</span>
+                <div className="drag-handle absolute top-2 right-2 w-8 h-8 bg-ctp-surface0/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve shadow-lg border border-ctp-surface1 hover:bg-ctp-surface1 hover:scale-110">
+                  <DragIcon sx={{ fontSize: 20 }} />
                 </div>
                 <Worldmap dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.bubblechart && (
               <div key="bubblechart" className="vis-cell group">
-                <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
-                  <span className="leading-none pointer-events-none">⊹</span>
+                <div className="drag-handle absolute top-2 right-2 w-8 h-8 bg-ctp-surface0/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve shadow-lg border border-ctp-surface1 hover:bg-ctp-surface1 hover:scale-110">
+                  <DragIcon sx={{ fontSize: 20 }} />
                 </div>
                 <Bubblechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.scatterplot && (
               <div key="scatterplot" className="vis-cell group">
-                <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
-                  <span className="leading-none pointer-events-none">⊹</span>
+                <div className="drag-handle absolute top-2 right-2 w-8 h-8 bg-ctp-surface0/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve shadow-lg border border-ctp-surface1 hover:bg-ctp-surface1 hover:scale-110">
+                  <DragIcon sx={{ fontSize: 20 }} />
                 </div>
                 <Scatterplot countryData={countryData!} populationData={populationData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.linechart && (
               <div key="linechart" className="vis-cell group">
-                <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
-                  <span className="leading-none pointer-events-none">⊹</span>
+                <div className="drag-handle absolute top-2 right-2 w-8 h-8 bg-ctp-surface0/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve shadow-lg border border-ctp-surface1 hover:bg-ctp-surface1 hover:scale-110">
+                  <DragIcon sx={{ fontSize: 20 }} />
                 </div>
                 <Linechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>

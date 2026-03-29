@@ -230,12 +230,11 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
           .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
-        setTooltipState({
-          show: true,
-          content: "",
+        setTooltipState((prev: any) => ({
+          ...prev,
           x: event.pageX,
           y: event.pageY
-        } as any);
+        }));
       })
       .on("mouseout", (event) => {
         setTooltipState({ show: false, content: "", x: 0, y: 0 });

@@ -27,18 +27,11 @@
 }
 
 .drag-handle {
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   top: 12px !important;
   right: 12px !important;
   left: auto !important;
   z-index: 50 !important;
-}
-
-.drag-handle:hover {
-  background-color: var(--ctp-teal);
-  color: var(--ctp-base);
-  transform: scale(1.1);
-  border-color: var(--ctp-teal);
 }
 
 /* React Grid Layout overrides */
