@@ -1,0 +1,33 @@
+#worldmap {
+    width: 100%;
+    height: 100%;
+    background: #f8f9fa; /* Light background for the map */
+    position: relative;
+    overflow: hidden;
+}
+
+#worldmap svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.country {
+    stroke: #333;
+    stroke-width: 0.5px;
+    transition: stroke 0.2s, stroke-width 0.2s;
+}
+
+.country:hover {
+    stroke: #fff;
+    stroke-width: 1px;
+}
+
+.country-unselectable {
+    fill: #D8D8D8;
+    cursor: not-allowed;
+}
+
+.country-selectable {
+    cursor: pointer;
+}
