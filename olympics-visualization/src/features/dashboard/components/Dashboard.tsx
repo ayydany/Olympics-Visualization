@@ -176,7 +176,7 @@ const MainComponent: React.FC = () => {
       <Header dictionaryData={dictionaryData} />
       
       {/* MUI Settings Menu - Absolute Top Right */}
-      <Box className="fixed top-2 right-2 z-[2000]">
+      <Box sx={{ position: 'fixed', top: 12, right: 12, left: 'auto', zIndex: 2000 }}>
         <MuiTooltip title="Configure Visualizations">
           <IconButton 
             onClick={handleMenuClick}
@@ -184,7 +184,9 @@ const MainComponent: React.FC = () => {
               backgroundColor: 'background.paper',
               border: '1px solid',
               borderColor: 'divider',
-              '&:hover': { backgroundColor: 'action.hover' }
+              boxShadow: 4,
+              '&:hover': { backgroundColor: 'action.hover', transform: 'scale(1.1)' },
+              transition: 'all 0.2s ease'
             }}
           >
             <SettingsIcon color="primary" />
