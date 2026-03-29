@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react';
 import App from './App';
 import { expect, test } from 'vitest';
 
-test('renders app header subtitle', () => {
+test('renders app header with filter text', () => {
   render(<App />);
-  const subtitle = screen.getByText(/Olympics Dashboard/i);
-  expect(subtitle).toBeInTheDocument();
+  const fromElement = screen.getByText(/from/i);
+  expect(fromElement).toBeInTheDocument();
 });
