@@ -31,7 +31,7 @@
   --ctp-mantle: #181825;
   --ctp-crust: #11111b;
 
-  --main-bg-color: var(--ctp-mantle);
+  --main-bg-color: var(--ctp-base);
   --main-text-color: var(--ctp-text);
   --accent-color: var(--ctp-mauve);
   --surface-color: var(--ctp-surface0);
