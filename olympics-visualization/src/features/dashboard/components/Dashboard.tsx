@@ -257,32 +257,32 @@ const MainComponent: React.FC = () => {
           >
             {visibleCharts.worldmap && (
               <div key="worldmap" className="vis-cell group">
-                <div className="drag-handle absolute top-2 right-2 w-8 h-8 bg-ctp-surface0/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve shadow-lg border border-ctp-surface1 hover:bg-ctp-surface1 hover:scale-110">
-                  <DragIcon sx={{ fontSize: 20 }} />
+                <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
+                  <DragIcon sx={{ fontSize: 24 }} />
                 </div>
                 <Worldmap dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.bubblechart && (
               <div key="bubblechart" className="vis-cell group">
-                <div className="drag-handle absolute top-2 right-2 w-8 h-8 bg-ctp-surface0/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve shadow-lg border border-ctp-surface1 hover:bg-ctp-surface1 hover:scale-110">
-                  <DragIcon sx={{ fontSize: 20 }} />
+                <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
+                  <DragIcon sx={{ fontSize: 24 }} />
                 </div>
                 <Bubblechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.scatterplot && (
               <div key="scatterplot" className="vis-cell group">
-                <div className="drag-handle absolute top-2 right-2 w-8 h-8 bg-ctp-surface0/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve shadow-lg border border-ctp-surface1 hover:bg-ctp-surface1 hover:scale-110">
-                  <DragIcon sx={{ fontSize: 20 }} />
+                <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
+                  <DragIcon sx={{ fontSize: 24 }} />
                 </div>
                 <Scatterplot countryData={countryData!} populationData={populationData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.linechart && (
               <div key="linechart" className="vis-cell group">
-                <div className="drag-handle absolute top-2 right-2 w-8 h-8 bg-ctp-surface0/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve shadow-lg border border-ctp-surface1 hover:bg-ctp-surface1 hover:scale-110">
-                  <DragIcon sx={{ fontSize: 20 }} />
+                <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
+                  <DragIcon sx={{ fontSize: 24 }} />
                 </div>
                 <Linechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>

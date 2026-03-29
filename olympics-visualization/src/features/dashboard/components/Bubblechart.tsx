@@ -148,7 +148,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
             .attr("class", "bubble-circle")
             .attr("stroke-width", "1.5")
             .attr("stroke", "#11111b")
-            .attr("fill-opacity", 0.8)
+            .attr("fill-opacity", 0)
             .attr("r", 0);
           g.append("text")
             .attr("class", "label unselectable")
@@ -156,17 +156,31 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
             .style("fill", "#11111b")
             .style("font-weight", "700")
             .style("text-anchor", "middle")
-            .style("dominant-baseline", "central");
+            .style("dominant-baseline", "central")
+            .style("opacity", 0);
           return g;
-        }
+        },
+        update => update,
+        exit => exit
+          .call(exit => exit.select(".bubble-circle")
+            .transition().duration(500)
+            .attr("r", 0)
+            .attr("fill-opacity", 0))
+          .call(exit => exit.select("text")
+            .transition().duration(500)
+            .style("opacity", 0))
+          .transition().delay(500).remove()
       );
 
     bubbleNodes.select<SVGCircleElement>(".bubble-circle")
       .transition().duration(750)
       .attr("r", d => radiusScale(d.TotalMedals))
-      .attr("fill", d => colorScale(d[currentFilterKeyword] as string));
+      .attr("fill", d => colorScale(d[currentFilterKeyword] as string))
+      .attr("fill-opacity", 0.8);
 
     bubbleNodes.select<SVGTextElement>("text")
+      .transition().duration(750)
+      .style("opacity", 1)
       .style("font-size", d => {
         const r = radiusScale(d.TotalMedals);
         return Math.min(r / 3.5, 14) + "px";

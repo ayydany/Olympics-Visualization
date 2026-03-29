@@ -77,5 +77,16 @@ Each visualization will follow a pattern:
 - **State Integrity:** Verify that changing filters in one chart correctly propagates to all others.
 - **Responsiveness:** Test on various screen sizes.
 
+## Future Visualization Suggestions (Roadmap)
+1.  **Medal Tally Leaderboard (Horizontal Bar Chart):**
+    - **Purpose:** Show the top 10 countries by total medal count dynamically based on the current year and sport filters.
+    - **Interaction:** Clicking a bar filters the entire dashboard to that country.
+2.  **Sunburst Partition:**
+    - **Purpose:** Represent the hierarchy of Sport -> Discipline -> Event in a single circular view.
+    - **Interaction:** Hover over segments to see medal distributions; click to "zoom" into a category.
+3.  **Streamgraph:**
+    - **Purpose:** Visualize medal trends over time for multiple countries simultaneously, highlighting dominance shifts.
+    - **Interaction:** Hover to highlight a country's "stream" and see exact counts per year.
+
 ---
 *Status: Approved*
