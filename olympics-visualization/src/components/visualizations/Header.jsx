@@ -44,7 +44,7 @@ const Header = ({ dictionaryData }) => {
     if (!container) return;
     const resizeObserver = new ResizeObserver((entries) => {
       if (!entries?.length) return;
-      // Get the width of the container
+      // Get the width of the content box
       setDimensions({ width: entries[0].contentRect.width });
     });
     resizeObserver.observe(container);
@@ -56,8 +56,8 @@ const Header = ({ dictionaryData }) => {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    // Balanced margins to prevent clipping
-    const margin = { top: 20, right: 40, bottom: 10, left: 40 };
+    // internal margins to prevent handle and label clipping
+    const margin = { top: 14, right: 25, bottom: 0, left: 15 };
     const width = dimensions.width;
     const sliderWidth = Math.max(0, width - margin.left - margin.right);
     
@@ -71,19 +71,11 @@ const Header = ({ dictionaryData }) => {
     slider.append("line").attr("class", "track").attr("x1", 0).attr("x2", sliderWidth);
     const trackInset = slider.append("line").attr("class", "track-inset").attr("x1", xScale(startIdx)).attr("x2", xScale(endIdx));
 
-    // Handle Year Labels (Above handles)
-    const label1 = slider.append("text").attr("class", "handle-label").attr("y", -12).attr("text-anchor", "middle").text(years[startIdx]);
-    const label2 = slider.append("text").attr("class", "handle-label").attr("y", -12).attr("text-anchor", "middle").text(years[endIdx]);
-
+    // Handles
     const handle1 = slider.append("circle").attr("class", "handle").attr("r", 7).attr("cx", xScale(startIdx));
     const handle2 = slider.append("circle").attr("class", "handle").attr("r", 7).attr("cx", xScale(endIdx));
 
-    // Update initial label positions
-    label1.attr("x", xScale(startIdx));
-    label2.attr("x", xScale(endIdx));
-
     let selectedHandle = null;
-    let selectedLabel = null;
 
     slider.append("line").attr("class", "track-overlay").attr("x1", 0).attr("x2", sliderWidth)
       .call(d3.drag()
@@ -92,19 +84,11 @@ const Header = ({ dictionaryData }) => {
           if (selectedHandle === null) {
             const d1 = Math.abs(target - xScale.invert(handle1.attr("cx")));
             const d2 = Math.abs(target - xScale.invert(handle2.attr("cx")));
-            if (d1 < d2) {
-              selectedHandle = handle1;
-              selectedLabel = label1;
-            } else {
-              selectedHandle = handle2;
-              selectedLabel = label2;
-            }
+            selectedHandle = d1 < d2 ? handle1 : handle2;
           }
           
           selectedHandle.attr("cx", xScale(target)).classed("active", true);
-          selectedLabel.attr("x", xScale(target)).text(years[target]);
           
-          // Update inset track
           const i1 = Math.round(xScale.invert(handle1.attr("cx")));
           const i2 = Math.round(xScale.invert(handle2.attr("cx")));
           trackInset.attr("x1", xScale(Math.min(i1, i2))).attr("x2", xScale(Math.max(i1, i2)));
@@ -112,7 +96,6 @@ const Header = ({ dictionaryData }) => {
         .on("end", () => {
           if (selectedHandle) selectedHandle.classed("active", false);
           selectedHandle = null;
-          selectedLabel = null;
 
           const i1 = Math.round(xScale.invert(handle1.attr("cx")));
           const i2 = Math.round(xScale.invert(handle2.attr("cx")));
@@ -122,21 +105,22 @@ const Header = ({ dictionaryData }) => {
 
     // Ticks (Bottom)
     const tickStep = width < 600 ? 4 : width < 900 ? 2 : 1;
-    slider.append("g").attr("class", "ticks unselectable").attr("transform", "translate(0, 22)")
+    slider.append("g").attr("class", "ticks unselectable")
+      .attr("transform", "translate(0, 18)")
       .selectAll("text").data(years.filter((_, i) => i % tickStep === 0)).enter()
       .append("text").attr("x", d => xScale(years.indexOf(d))).attr("text-anchor", "middle").text(d => d);
 
   }, [dimensions, years, setYearFilter, yearFilter.start, yearFilter.end]);
 
   return (
-    <header className="header-new max-w-full overflow-hidden">
-      <div className="title-row overflow-hidden">
+    <header className="header-new w-full">
+      <div className="title-row">
         <h1 className="title-text truncate">
           <span className="accent">{countriesText}</span> on <span className="accent">{filterLabel}</span> from <span className="accent">{yearFilter.start}</span> to <span className="accent">{yearFilter.end}</span>
         </h1>
       </div>
-      <div ref={containerRef} className="slider-row px-10">
-        <svg ref={svgRef} className="slider-svg w-full h-full" />
+      <div ref={containerRef} className="slider-row">
+        <svg ref={svgRef} className="slider-svg" width="100%" height="100%" />
       </div>
     </header>
   );

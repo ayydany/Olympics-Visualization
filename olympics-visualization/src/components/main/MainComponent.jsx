@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import * as d3 from "d3";
-import { Responsive, WidthProvider } from "react-grid-layout/legacy";
+import { Responsive as ResponsiveGridLayout } from "react-grid-layout";
 
 import Header from "../visualizations/Header";
 import Bubblechart from "../visualizations/Bubblechart";
@@ -17,9 +17,9 @@ import "/node_modules/react-grid-layout/css/styles.css";
 import "/node_modules/react-resizable/css/styles.css";
 import "./MainComponent.css";
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
-
 const MainComponent = () => {
+  const gridContainerRef = useRef();
+  const [gridWidth, setGridWidth] = useState(1200);
   const [dictionaryData, setDictionaryData] = useState(null);
   const [countryData, setCountyData] = useState(null);
   const [populationData, setPopulationData] = useState(null);
@@ -40,6 +40,17 @@ const MainComponent = () => {
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!gridContainerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) return;
+      const { width } = entries[0].contentRect;
+      setGridWidth(width);
+    });
+    observer.observe(gridContainerRef.current);
+    return () => observer.disconnect();
   }, []);
 
   const fetchData = () => {
@@ -87,26 +98,52 @@ const MainComponent = () => {
 
   const layouts = {
     lg: [
-      { i: "worldmap", x: 0, y: 0, w: 6, h: 2 },
-      { i: "bubblechart", x: 6, y: 0, w: 6, h: 2 },
-      { i: "scatterplot", x: 0, y: 2, w: 6, h: 2 },
-      { i: "linechart", x: 6, y: 2, w: 6, h: 2 },
+      { i: "worldmap", x: 0, y: 0, w: 6, h: 15 },
+      { i: "bubblechart", x: 6, y: 0, w: 6, h: 15 },
+      { i: "scatterplot", x: 0, y: 15, w: 6, h: 15 },
+      { i: "linechart", x: 6, y: 15, w: 6, h: 15 },
+    ],
+    md: [
+      { i: "worldmap", x: 0, y: 0, w: 5, h: 15 },
+      { i: "bubblechart", x: 5, y: 0, w: 5, h: 15 },
+      { i: "scatterplot", x: 0, y: 15, w: 5, h: 15 },
+      { i: "linechart", x: 5, y: 15, w: 5, h: 15 },
+    ],
+    sm: [
+      { i: "worldmap", x: 0, y: 0, w: 6, h: 12 },
+      { i: "bubblechart", x: 0, y: 12, w: 6, h: 12 },
+      { i: "scatterplot", x: 0, y: 24, w: 6, h: 12 },
+      { i: "linechart", x: 0, y: 36, w: 6, h: 12 },
+    ],
+    xs: [
+      { i: "worldmap", x: 0, y: 0, w: 4, h: 10 },
+      { i: "bubblechart", x: 0, y: 10, w: 4, h: 10 },
+      { i: "scatterplot", x: 0, y: 20, w: 4, h: 10 },
+      { i: "linechart", x: 0, y: 30, w: 4, h: 10 },
+    ],
+    xss: [
+      { i: "worldmap", x: 0, y: 0, w: 2, h: 10 },
+      { i: "bubblechart", x: 0, y: 10, w: 2, h: 10 },
+      { i: "scatterplot", x: 0, y: 20, w: 2, h: 10 },
+      { i: "linechart", x: 0, y: 30, w: 2, h: 10 },
     ],
   };
 
   return (
     <div className="main-container flex flex-col h-screen bg-ctp-base text-ctp-text overflow-hidden">
       <Header title="Header" dictionaryData={dictionaryData} />
-      <div className="flex-grow overflow-y-auto bg-ctp-crust p-2">
-        {isLoading && <div className="p-3 text-ctp-subtext0 font-medium">Loading dataset...</div>}
+      <div ref={gridContainerRef} className="flex-grow overflow-y-auto bg-ctp-crust p-2 relative">
+        {isLoading && <div className="p-3 text-ctp-subtext0 font-medium text-center mt-10">Loading dataset...</div>}
         {visReady && (
           <ResponsiveGridLayout
             className="layout"
             layouts={layouts}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xss: 0 }}
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xss: 2 }}
-            rowHeight={300}
+            rowHeight={20}
+            width={gridWidth}
             draggableHandle=".drag-handle"
+            margin={[10, 10]}
           >
             <div key="worldmap" className="vis-cell group">
               <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
