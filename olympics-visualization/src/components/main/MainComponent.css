@@ -8,7 +8,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  position: relative;
+  position: relative; /* CRITICAL: ensures children like .drag-handle use this as anchor */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,14 +20,14 @@
   border-color: var(--ctp-surface1);
 }
 
+.drag-handle {
+  transition: all 0.2s ease;
+}
+
 .drag-handle:hover {
   background-color: var(--ctp-surface1);
   color: var(--ctp-text);
-  transform: scale(1.05);
-}
-
-.drag-handle {
-  transition: all 0.2s ease;
+  transform: scale(1.1);
 }
 
 /* React Grid Layout overrides */
@@ -38,23 +38,25 @@
 }
 
 .react-resizable-handle {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   bottom: 0;
   right: 0;
   background-image: none !important;
   cursor: nwse-resize;
+  z-index: 100;
 }
 
 .react-resizable-handle::after {
   content: "";
   position: absolute;
-  right: 5px;
-  bottom: 5px;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--ctp-surface2);
-  border-bottom: 2px solid var(--ctp-surface2);
+  right: 6px;
+  bottom: 6px;
+  width: 10px;
+  height: 10px;
+  border-right: 3px solid var(--ctp-surface2);
+  border-bottom: 3px solid var(--ctp-surface2);
+  border-radius: 1px;
 }
 
 .vis-cell:hover .react-resizable-handle::after {

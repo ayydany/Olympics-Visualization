@@ -181,11 +181,11 @@ const Header = ({ dictionaryData }) => {
   }, [dimensions, years, setYearFilter, yearFilter.start, yearFilter.end]);
 
   return (
-    <header className="w-full bg-ctp-mantle border-b border-ctp-surface0 shadow-lg z-50 px-16 py-1 flex flex-col gap-0">
-      <div className="flex items-center justify-start overflow-hidden">
+    <header className="w-full bg-ctp-mantle border-b border-ctp-surface0 shadow-lg z-50 px-0 py-2 flex flex-col gap-0">
+      <div className="flex items-center justify-start overflow-hidden pl-6">
         {labelText}
       </div>
-      <div ref={containerRef} className="w-full h-[40px]">
+      <div ref={containerRef} className="w-full h-[40px] px-6">
         <svg ref={svgRef} className="w-full h-full overflow-visible" />
       </div>
     </header>
