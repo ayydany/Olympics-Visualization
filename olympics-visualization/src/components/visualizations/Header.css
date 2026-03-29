@@ -1,33 +1,5 @@
 #header {
-  background-color: var(--ctp-mantle);
-  color: var(--ctp-text);
-  padding: 10px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-bottom: 1px solid var(--ctp-surface0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-#statelabel {
-  font-family: "Montserrat", sans-serif;
-  font-size: 1.2rem;
-  margin-bottom: 5px;
-}
-
-#statelabel strong {
-  color: var(--ctp-mauve);
-}
-
-.subtitle {
-  font-size: 0.8rem;
-  color: var(--ctp-subtext0);
-  margin-top: 5px;
-}
-
-#timeslider {
-  width: 100%;
-  height: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .track,
@@ -55,13 +27,14 @@
 
 .handle {
   fill: var(--ctp-mauve);
-  stroke: var(--ctp-base);
-  stroke-width: 1.5px;
+  stroke: var(--ctp-mantle);
+  stroke-width: 2px;
 }
 
 .ticks {
   font-size: 10px;
   fill: var(--ctp-subtext1);
+  font-weight: 600;
 }
 
 .unselectable {

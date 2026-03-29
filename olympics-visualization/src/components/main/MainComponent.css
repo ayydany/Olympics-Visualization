@@ -1,28 +1,52 @@
 .main-container {
-  background-color: var(--ctp-base);
-  color: var(--ctp-text);
   overflow: hidden;
   height: 100vh;
 }
 
-.visualizations-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  flex-grow: 1;
-  gap: 10px;
-  padding: 10px;
-  background-color: var(--ctp-crust);
-}
-
 .vis-cell {
   background-color: var(--ctp-mantle);
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--ctp-surface0);
+  transition: border-color 0.2s ease;
+}
+
+.vis-cell:hover {
+  border-color: var(--ctp-surface1);
+}
+
+/* React Grid Layout overrides */
+.react-grid-placeholder {
+  background: var(--ctp-surface0) !important;
+  border-radius: 12px !important;
+  opacity: 0.5 !important;
+}
+
+.react-resizable-handle {
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  background-image: none !important;
+  cursor: nwse-resize;
+}
+
+.react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--ctp-surface2);
+  border-bottom: 2px solid var(--ctp-surface2);
+}
+
+.vis-cell:hover .react-resizable-handle::after {
+  border-color: var(--ctp-mauve);
 }

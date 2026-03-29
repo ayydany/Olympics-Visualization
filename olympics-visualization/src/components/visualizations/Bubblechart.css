@@ -1,0 +1,66 @@
+#bubblechart {  
+    width: 100%;
+    height: 100%;
+    background: transparent; 
+    position: relative;
+    overflow: visible;
+}
+
+#bubblechart #back-icon-container {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--ctp-mantle);
+    color: var(--ctp-text);
+    border: 1px solid var(--ctp-surface0);
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    z-index: 2;
+    user-select: none;
+}
+
+#bubblechart #back-icon-container.hidden {
+    display: none;
+}
+
+#bubblechart #back-icon-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    background-color: var(--ctp-surface0);
+}
+
+#bubblechart .back-icon-arrow {
+    font-size: 16px;
+    line-height: 1;
+    color: var(--ctp-mauve);
+}
+
+#bubblechart .back-icon-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+#bubblechart .back-title {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    font-weight: 700;
+}
+
+#bubblechart .back-subtitle {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#bubblechart .label {
+    font-family: 'Montserrat', sans-serif;
+    pointer-events: none;
+}

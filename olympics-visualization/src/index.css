@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   /* Catppuccin Mocha Palette */
   --ctp-rosewater: #f5e0dc;
@@ -27,7 +31,7 @@
   --ctp-mantle: #181825;
   --ctp-crust: #11111b;
 
-  --main-bg-color: var(--ctp-base);
+  --main-bg-color: var(--ctp-mantle);
   --main-text-color: var(--ctp-text);
   --accent-color: var(--ctp-mauve);
   --surface-color: var(--ctp-surface0);

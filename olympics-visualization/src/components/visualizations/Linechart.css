@@ -1,0 +1,43 @@
+#linechart {    
+    width: 100%;
+    height: 100%;
+    background: transparent; 
+    position: relative;
+}
+
+#linechart #medal-icon {
+    bottom: 300px;
+    width: 20px;
+    position: absolute;
+    margin: auto;
+}
+
+#linechart .line {
+    fill: none;
+    stroke-width: 5;
+    opacity: 1;
+}
+
+/* Axis Variables */
+
+#linechart .axislabel {
+    font-family: 'Open Sans', 'sans-serif';
+    font-size: 14px;
+}
+
+#linechart.xAxis #linechart.yAxis text {
+    stroke: var(--main-dark-color);
+}
+
+#linechart text {
+    font-family: 'Open Sans', sans-serif;
+    fill: var(--main-dark-color);
+}
+
+#linechart line {
+    stroke: var(--main-dark-color);
+}
+
+#linechart .domain {
+    stroke: var(--main-dark-color);
+}

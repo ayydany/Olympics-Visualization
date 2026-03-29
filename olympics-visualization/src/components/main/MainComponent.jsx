@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import * as d3 from "d3";
+import { Responsive, WidthProvider } from "react-grid-layout/legacy";
 
 import Header from "../visualizations/Header";
 import Bubblechart from "../visualizations/Bubblechart";
@@ -12,10 +13,13 @@ import countryDataCsv from "../../data/summer_year_country_event.csv";
 import populationCsv from "../../data/world_population_full.csv";
 import useYearStore from "../../store/useYearStore";
 
+import "/node_modules/react-grid-layout/css/styles.css";
+import "/node_modules/react-resizable/css/styles.css";
 import "./MainComponent.css";
 
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
 const MainComponent = () => {
-  // Define state to hold data
   const [dictionaryData, setDictionaryData] = useState(null);
   const [countryData, setCountyData] = useState(null);
   const [populationData, setPopulationData] = useState(null);
@@ -29,12 +33,10 @@ const MainComponent = () => {
   const setDefaultCountries = useYearStore((state) => state.setDefaultCountries);
   const countrySelection = useYearStore((state) => state.countrySelection);
 
-  // Fetch data when component mounts
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Function to fetch data
   const fetchData = () => {
     Promise.all([
       d3.csv(dictionaryDataCsv),
@@ -54,15 +56,14 @@ const MainComponent = () => {
         setDictionaryData(dictionary);
         setCountyData(parsedCountry);
         setPopulationData(population);
-        setIsLoading(false); // Mark loading as complete
+        setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setIsLoading(false); // Mark loading as complete (even if there's an error)
+        setIsLoading(false);
       });
   };
 
-  // Set default country selection once dictionary data is present
   useEffect(() => {
     if (dictionaryData && countrySelection.length === 0) {
       const france = dictionaryData.find((d) => d.CountryName === "France");
@@ -79,42 +80,46 @@ const MainComponent = () => {
     return dictionaryData && countryData && populationData;
   }, [dictionaryData, countryData, populationData]);
 
+  const layouts = {
+    lg: [
+      { i: "worldmap", x: 0, y: 0, w: 6, h: 2 },
+      { i: "bubblechart", x: 6, y: 0, w: 6, h: 2 },
+      { i: "scatterplot", x: 0, y: 2, w: 6, h: 2 },
+      { i: "linechart", x: 6, y: 2, w: 6, h: 2 },
+    ],
+  };
+
   return (
-    <div className="main-container container-fluid h-100 d-flex flex-column p-0">
+    <div className="main-container flex flex-col h-screen bg-ctp-base text-ctp-text overflow-hidden">
       <Header title="Header" dictionaryData={dictionaryData} />
-      <div className="visualizations-container">
-        {isLoading && <div className="p-3">Loading data...</div>}
+      <div className="flex-grow overflow-y-auto bg-ctp-crust p-2">
+        {isLoading && <div className="p-3 text-ctp-subtext0 font-medium">Loading dataset...</div>}
         {visReady && (
-          <>
-            <div className="vis-cell">
-              <Worldmap
-                dictionaryData={dictionaryData}
-                setTooltipState={setTooltipState}
-              />
+          <ResponsiveGridLayout
+            className="layout"
+            layouts={layouts}
+            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xss: 0 }}
+            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xss: 2 }}
+            rowHeight={300}
+            draggableHandle=".drag-handle"
+          >
+            <div key="worldmap" className="vis-cell group">
+              <div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ctp-surface0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10 flex items-center justify-center text-[10px] text-ctp-subtext1 uppercase tracking-widest font-bold">World Map</div>
+              <Worldmap dictionaryData={dictionaryData} setTooltipState={setTooltipState} />
             </div>
-            <div className="vis-cell">
-              <Bubblechart
-                countryData={countryData}
-                dictionaryData={dictionaryData}
-                setTooltipState={setTooltipState}
-              />
+            <div key="bubblechart" className="vis-cell group">
+              <div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ctp-surface0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10 flex items-center justify-center text-[10px] text-ctp-subtext1 uppercase tracking-widest font-bold">Bubble Chart</div>
+              <Bubblechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={setTooltipState} />
             </div>
-            <div className="vis-cell">
-              <Scatterplot
-                countryData={countryData}
-                populationData={populationData}
-                dictionaryData={dictionaryData}
-                setTooltipState={setTooltipState}
-              />
+            <div key="scatterplot" className="vis-cell group">
+              <div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ctp-surface0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10 flex items-center justify-center text-[10px] text-ctp-subtext1 uppercase tracking-widest font-bold">Scatter Plot</div>
+              <Scatterplot countryData={countryData} populationData={populationData} dictionaryData={dictionaryData} setTooltipState={setTooltipState} />
             </div>
-            <div className="vis-cell">
-              <Linechart
-                countryData={countryData}
-                dictionaryData={dictionaryData}
-                setTooltipState={setTooltipState}
-              />
+            <div key="linechart" className="vis-cell group">
+              <div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ctp-surface0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10 flex items-center justify-center text-[10px] text-ctp-subtext1 uppercase tracking-widest font-bold">Line Chart</div>
+              <Linechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={setTooltipState} />
             </div>
-          </>
+          </ResponsiveGridLayout>
         )}
       </div>
       <Tooltip {...tooltipState} />

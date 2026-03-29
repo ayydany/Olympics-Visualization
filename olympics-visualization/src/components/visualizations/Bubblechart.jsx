@@ -102,6 +102,26 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       .domain([1, d3.max(processedData, (d) => d.TotalMedals || 1)])
       .range([16, 75 - processedData.length / 2]);
 
+    // Catppuccin Accents
+    const catppuccinAccents = [
+      "#cba6f7", // mauve
+      "#89b4fa", // blue
+      "#a6e3a1", // green
+      "#f9e2af", // yellow
+      "#fab387", // peach
+      "#f38ba8", // red
+      "#f5c2e7", // pink
+      "#94e2d5", // teal
+      "#89dceb", // sky
+      "#74c7ec", // sapphire
+      "#b4befe", // lavender
+      "#f2cdcd", // flamingo
+    ];
+
+    const colorScale = d3.scaleOrdinal()
+      .domain(processedData.map((d) => d[currentFilterKeyword]))
+      .range(catppuccinAccents);
+
     const svg = d3
       .select(container)
       .attr("width", width)
@@ -169,7 +189,7 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       .append("circle")
       .attr("stroke-width", "1.5")
       .attr("stroke", "#11111b") // Crust
-      .attr("fill", (d) => "var(--ctp-mauve)")
+      .attr("fill", (d) => colorScale(d[currentFilterKeyword]))
       .attr("fill-opacity", 0.8)
       .on("mouseover", function (event, d) {
         showTooltip(event, d);
@@ -226,21 +246,21 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       .append("text")
       .attr("class", "label unselectable")
       .style("pointer-events", "none")
-      .style("fill", "#11111b") // Crust for contrast on Mauve
-      .style("font-weight", "600")
+      .style("fill", "#11111b") // Crust for contrast
+      .style("font-weight", "700")
       .style("text-anchor", "middle")
       .style("dominant-baseline", "central")
       .style("font-size", d => {
         const r = radiusScale(d.TotalMedals);
-        return Math.min(r / 3, 14) + "px";
+        return Math.min(r / 3.5, 14) + "px";
       })
       .text((d) => {
         const r = radiusScale(d.TotalMedals);
         const label = d[currentFilterKeyword];
-        const maxChars = Math.floor(r / 4);
+        const maxChars = Math.floor(r / 3.2);
         if (r < 20) return "";
         if (label.length > maxChars) {
-          return label.slice(0, maxChars - 2) + "...";
+          return label.slice(0, Math.max(0, maxChars - 2)) + "...";
         }
         return label;
       });

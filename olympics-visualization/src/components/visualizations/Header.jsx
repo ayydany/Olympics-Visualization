@@ -1,15 +1,49 @@
-import React, { useRef, useEffect } from "react";
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { yearFilterState, yearsState } from "../../recoil/atoms";
-import { filteredYearsState } from "../../recoil/selectors";
+import React, { useRef, useEffect, useMemo } from "react";
 import * as d3 from "d3";
+import useYearStore from "../../store/useYearStore";
 import "./Header.css";
 
-const Header = () => {
+const Header = ({ dictionaryData }) => {
   const svgRef = useRef();
-  const [yearFilter, setYearFilter] = useRecoilState(yearFilterState);
-  const years = useRecoilValue(yearsState);
-  const filteredYears = useRecoilValue(filteredYearsState);
+  const yearFilter = useYearStore((state) => state.yearFilter);
+  const setYearFilter = useYearStore((state) => state.setYearFilter);
+  const years = useYearStore((state) => state.years);
+  const currentState = useYearStore((state) => state.currentState);
+  const sportFilter = useYearStore((state) => state.sportFilter);
+  const disciplineFilter = useYearStore((state) => state.disciplineFilter);
+  const eventFilter = useYearStore((state) => state.eventFilter);
+  const countrySelection = useYearStore((state) => state.countrySelection);
+
+  const dictionaryMap = useMemo(() => {
+    if (!dictionaryData) return {};
+    return dictionaryData.reduce((acc, entry) => {
+      acc[entry.CountryCode] = entry.CountryName;
+      return acc;
+    }, {});
+  }, [dictionaryData]);
+
+  const labelText = useMemo(() => {
+    const countriesText =
+      countrySelection && countrySelection.length > 0
+        ? countrySelection
+            .map((code) => dictionaryMap[code] || code)
+            .join(", ")
+        : "every country";
+
+    let filterLabel = "every Event";
+    if (currentState === 1) filterLabel = sportFilter;
+    if (currentState === 2) filterLabel = disciplineFilter;
+    if (currentState === 3) filterLabel = eventFilter;
+
+    return `${countriesText} on ${filterLabel}`;
+  }, [
+    countrySelection,
+    currentState,
+    dictionaryMap,
+    disciplineFilter,
+    eventFilter,
+    sportFilter,
+  ]);
 
   useEffect(() => {
     var rect = svgRef.current.getBoundingClientRect();
@@ -74,15 +108,16 @@ const Header = () => {
             selectedHandle = null;
 
             // update global time variable
-            Math.round(handle1.attr("cx")) <= Math.round(handle2.attr("cx"))
-              ? setYearFilter({
-                  start: xScale.invert(handle1.attr("cx")),
-                  end: xScale.invert(handle2.attr("cx")),
-                })
-              : setYearFilter({
-                  start: xScale.invert(handle2.attr("cx")),
-                  end: xScale.invert(handle1.attr("cx")),
-                });
+            const firstIndex = round(xScale.invert(handle1.attr("cx")));
+            const secondIndex = round(xScale.invert(handle2.attr("cx")));
+            const startYear =
+              years[Math.min(Math.round(firstIndex), Math.round(secondIndex))];
+            const endYear =
+              years[Math.max(Math.round(firstIndex), Math.round(secondIndex))];
+            setYearFilter({
+              start: startYear,
+              end: endYear,
+            });
           })
       );
 
@@ -108,7 +143,7 @@ const Header = () => {
       .insert("circle", ".track-overlay")
       .attr("class", "handle")
       .attr("r", 8)
-      .attr("cx", xScale(27));
+      .attr("cx", xScale(years.length - 1));
 
     function moveHandle(target) {
       selectedHandle.attr("r", 10).attr("cx", xScale(target));
@@ -129,12 +164,21 @@ const Header = () => {
   }, []);
 
   return (
-    <div id="header">
-      <span id="statelabel" className="unselectable">
-        <strong>Bubacar</strong> on <strong>{yearFilter.start}</strong> to <strong>{yearFilter.end}</strong>
-      </span>
-      <svg id="timeslider" ref={svgRef} />
-      <span className="subtitle unselectable">Olympics Visualization - Made with ❤️</span>
+    <div id="header" className="w-full flex flex-col md:flex-row items-center md:items-end justify-between px-6 py-4 bg-ctp-mantle border-b border-ctp-surface0 shadow-lg">
+      <div className="flex flex-col items-start w-full md:w-1/2">
+        <span id="statelabel" className="text-2xl font-extrabold tracking-tight text-ctp-text leading-tight unselectable mb-1">
+          {labelText}
+        </span>
+        <span className="text-sm font-medium text-ctp-subtext0 unselectable">
+          Summer Olympics Data Visualization • {yearFilter.start} - {yearFilter.end}
+        </span>
+      </div>
+      <div className="flex flex-col items-center w-full md:w-1/2 mt-4 md:mt-0">
+        <svg id="timeslider" ref={svgRef} className="w-full max-w-[600px] h-[40px]" />
+        <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-ctp-surface2 mt-1 unselectable">
+          Olympics Visualization - Made with ❤️
+        </span>
+      </div>
     </div>
   );
 };

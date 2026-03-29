@@ -11,12 +11,12 @@
   --linechart-dot-highlight-color:#FE5C47;
 }
 
-html, body { 
-  height: 100%; 
+html, body {
+  height: 100%;
   padding: 0;
   margin: 0;
 
-  font-family: 'Noto Sans', 'sans-serif';
+  font-family: 'Open Sans', 'sans-serif';
   font-size: 100%;
 
   color: var(--main-dark-color);    
@@ -25,6 +25,13 @@ html, body {
   overflow: hidden;
   text-rendering: optimizeLegibility;
   shape-rendering: auto;
+}
+
+.App {
+  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 text {
@@ -45,34 +52,35 @@ text {
   visibility: hidden;
 }
 
-/* Poput tip */
-
-.d3-tip {
-  font-size: 0.8em;
-  line-height: 1.3em;
-  font-family: 'Open Sans', sans-serif;
-  padding: 10px;
-  background: var(--main-dark-trans-color); 
-  color: #fff;
-  border-radius: 7px;
-}
- 
-/* Creates a small triangle extender for the tooltip */
-
-.d3-tip:after {
-  box-sizing: border-box;
-  width: 100%;
-  line-height: 1;
-  color: var(--main-dark-trans-color); 
-  content: "\25BC";
+.tooltip {
   position: absolute;
-  text-align: center;
+  pointer-events: none;
+  padding: 8px;
+  background: var(--main-dark-trans-color);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.8em;
+  z-index: 10;
 }
- 
-/* Style northward tooltips specifically */
 
-.d3-tip.n:after {
-  margin: -2px 0 0 0;
-  top: 100%;
-  left: 0;
+.bubble-tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1050;
 }
+
+.bubble-tooltip.hidden {
+  display: none;
+}
+
+.chart-tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1050;
+}
+
+.chart-tooltip.hidden {
+  display: none;
+}
+
+/* Poput tip */
