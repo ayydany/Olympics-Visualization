@@ -1,0 +1,20 @@
+.custom-tooltip {
+    position: absolute;
+    z-index: 1070;
+    pointer-events: none;
+    max-width: 200px;
+}
+
+.custom-tooltip .tooltip-inner {
+    padding: 0.5rem 0.8rem;
+    color: #fff;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.9);
+    border-radius: 0.4rem;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.custom-tooltip .tooltip-inner center {
+    margin: 4px 0;
+}
