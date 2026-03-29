@@ -129,6 +129,12 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
 
     yAxisGroup.transition(transition).call(d3.axisLeft(yScale));
 
+    // Style Axes for Catppuccin
+    xAxisGroup.selectAll("path, line").attr("stroke", "#585b70"); // Surface2
+    xAxisGroup.selectAll("text").attr("fill", "#bac2de"); // Subtext1
+    yAxisGroup.selectAll("path, line").attr("stroke", "#585b70"); // Surface2
+    yAxisGroup.selectAll("text").attr("fill", "#bac2de"); // Subtext1
+
     svg
       .selectAll(".x-axis-label")
       .data([null])
@@ -136,6 +142,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .attr("class", "axislabel unselectable x-axis-label")
       .attr("transform", `translate(${width / 2},${height - 5})`)
       .style("text-anchor", "middle")
+      .style("fill", "#cdd6f4") // Text
       .text("Years");
 
     svg
@@ -147,6 +154,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .attr("y", 15)
       .attr("x", 0 - height / 2)
       .style("text-anchor", "middle")
+      .style("fill", "#cdd6f4") // Text
       .text("Medals");
 
     const pathData = filledSeries.map((series, idx) => ({
@@ -164,6 +172,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .append("path")
       .attr("class", (d) => `line id${d.id}`)
       .attr("stroke", (d) => d.series.color)
+      .attr("stroke-width", 2)
       .attr("fill", "none")
       .attr("d", (d) => line(d.values))
       .attr("opacity", 0)
@@ -207,7 +216,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .attr("cx", (d) => xScale(d.year))
       .attr("cy", (d) => yScale(0))
       .attr("r", 0)
-      .attr("stroke", "#333")
+      .attr("stroke", "#11111b") // Crust
       .transition(transition)
       .attr("cy", (d) => yScale(d.total))
       .attr("r", (d) => d.r);
@@ -228,7 +237,11 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
           x: event.pageX,
           y: event.pageY,
           content: `<strong>${d.countryName} (${d.year})</strong><br/>
-                    <center>🥇 ${d.gold} | 🥈 ${d.silver} | 🥉 ${d.bronze}</center>
+                    <center>
+                      <span style="color: #f9e2af">🥇 ${d.gold}</span> | 
+                      <span style="color: #bac2de">🥈 ${d.silver}</span> | 
+                      <span style="color: #fab387">🥉 ${d.bronze}</span>
+                    </center>
                     Total Medals: ${d.total}`,
         });
         d3.select(event.currentTarget)
@@ -236,16 +249,16 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
           .duration(750)
           .ease(d3.easeElastic)
           .attr("r", d.r + 3)
-          .attr("stroke", "#fff");
+          .attr("stroke", "#cdd6f4"); // Text
       })
-      .on("mouseout", (event) => {
+      .on("mouseout", (event, d) => {
         setTooltipState((prev) => ({ ...prev, show: false }));
         d3.select(event.currentTarget)
           .transition()
           .duration(750)
           .ease(d3.easeElastic)
-          .attr("r", (d) => d.r)
-          .attr("stroke", "#333");
+          .attr("r", d.r)
+          .attr("stroke", "#11111b"); // Crust
       });
   }, [
     countryData,

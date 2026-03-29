@@ -61,7 +61,7 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
       
       pattern.append("path")
         .attr("d", "M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2")
-        .attr("stroke", "#666")
+        .attr("stroke", "#45475a") // Surface1
         .attr("stroke-width", 0.5);
     }
 
@@ -89,8 +89,10 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
         if (countrySelection.includes(code)) {
           return getCountryColor(code);
         }
-        return "#A8A39D";
+        return "#6c7086"; // Overlay0
       })
+      .attr("stroke", "#11111b") // Crust
+      .attr("stroke-width", 0.5)
       .classed("country-selectable", (d) => !!(nameToCode[d.properties.name_long] || nameToCode[d.properties.name]))
       .classed("country-unselectable", (d) => !(nameToCode[d.properties.name_long] || nameToCode[d.properties.name]))
       .on("mouseover", function(event, d) {
@@ -98,7 +100,7 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
         const code = nameToCode[name];
         if (!code) return;
 
-        d3.select(this).style("stroke", "#fff").style("stroke-width", 1);
+        d3.select(this).style("stroke", "#cdd6f4").style("stroke-width", 1); // Text
         
         setTooltipState({
           show: true,
@@ -115,7 +117,7 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
         }));
       })
       .on("mouseout", function() {
-        d3.select(this).style("stroke", "#333").style("stroke-width", 0.5);
+        d3.select(this).style("stroke", "#11111b").style("stroke-width", 0.5); // Crust
         setTooltipState({ show: false, content: "", x: 0, y: 0 });
       })
       .on("click", (event, d) => {

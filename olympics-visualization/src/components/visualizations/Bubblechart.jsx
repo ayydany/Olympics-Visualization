@@ -97,6 +97,11 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       [currentFilterKeyword]: key,
     })).sort((a, b) => d3.descending(a.TotalMedals, b.TotalMedals));
 
+    const radiusScale = d3
+      .scaleSqrt()
+      .domain([1, d3.max(processedData, (d) => d.TotalMedals || 1)])
+      .range([16, 75 - processedData.length / 2]);
+
     const svg = d3
       .select(container)
       .attr("width", width)
@@ -108,37 +113,28 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       return;
     }
 
-    const radiusScale = d3
-      .scaleSqrt()
-      .domain([1, d3.max(processedData, (d) => d.TotalMedals || 1)])
-      .range([12, 70 - processedData.length / 2]);
-
-    const colorScale = d3
-      .scaleOrdinal(d3.schemeSet3)
-      .domain(processedData.map((d) => d[currentFilterKeyword]));
-
     const simulation = d3
       .forceSimulation(processedData)
       .force(
         "x",
         d3
           .forceX(width / 2)
-          .strength(0.05)
+          .strength(0.08)
       )
       .force(
         "y",
         d3
           .forceY(height / 2)
-          .strength(0.05)
+          .strength(0.08)
       )
-      .force("charge", d3.forceManyBody().strength(-15))
+      .force("charge", d3.forceManyBody().strength(-20))
       .force("center_force", d3.forceCenter(width / 2, height / 2))
       .force(
         "collide",
         d3
           .forceCollide()
-          .strength(0.5)
-          .radius((d) => radiusScale(d.TotalMedals) + 5)
+          .strength(0.7)
+          .radius((d) => radiusScale(d.TotalMedals) + 3)
       );
 
     const bubbleGroup = svg
@@ -156,9 +152,9 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
         content: `
           <center><strong>${d[currentFilterKeyword]}</strong></center>
           <center>
-            <span style="color: #FFD700"><strong>${d.GoldCount}</strong>🥇</span>
-            <span style="color: #C0C0C0"><strong>${d.SilverCount}</strong>🥈</span>
-            <span style="color: #cd7f32"><strong>${d.BronzeCount}</strong>🥉</span>
+            <span style="color: #f9e2af"><strong>${d.GoldCount}</strong>🥇</span>
+            <span style="color: #bac2de"><strong>${d.SilverCount}</strong>🥈</span>
+            <span style="color: #fab387"><strong>${d.BronzeCount}</strong>🥉</span>
           </center>
           <center><strong>Total:</strong> ${d.TotalMedals}</center>
         `
@@ -171,17 +167,19 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
 
     const bubble = bubbleGroup
       .append("circle")
-      .attr("stroke-width", "2")
-      .attr("stroke", "#111")
-      .attr("fill", (d) => colorScale(d[currentFilterKeyword]))
+      .attr("stroke-width", "1.5")
+      .attr("stroke", "#11111b") // Crust
+      .attr("fill", (d) => "var(--ctp-mauve)")
+      .attr("fill-opacity", 0.8)
       .on("mouseover", function (event, d) {
         showTooltip(event, d);
         d3.select(this)
           .transition()
-          .duration(200)
+          .duration(300)
           .ease(d3.easeCubicOut)
-          .attr("r", radiusScale(d.TotalMedals) + 4)
-          .attr("stroke", "#fff");
+          .attr("r", radiusScale(d.TotalMedals) + 5)
+          .attr("fill-opacity", 1)
+          .attr("stroke", "#cdd6f4"); // Text
       })
       .on("mousemove", (event) => {
         setTooltipState((prev) => ({
@@ -194,10 +192,11 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
         hideTooltip();
         d3.select(this)
           .transition()
-          .duration(200)
+          .duration(300)
           .ease(d3.easeCubicOut)
           .attr("r", (d) => radiusScale(d.TotalMedals))
-          .attr("stroke", "#111");
+          .attr("fill-opacity", 0.8)
+          .attr("stroke", "#11111b"); // Crust
       })
       .on("click", (event, d) => {
         hideTooltip();
@@ -227,12 +226,22 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       .append("text")
       .attr("class", "label unselectable")
       .style("pointer-events", "none")
+      .style("fill", "#11111b") // Crust for contrast on Mauve
+      .style("font-weight", "600")
+      .style("text-anchor", "middle")
+      .style("dominant-baseline", "central")
+      .style("font-size", d => {
+        const r = radiusScale(d.TotalMedals);
+        return Math.min(r / 3, 14) + "px";
+      })
       .text((d) => {
         const r = radiusScale(d.TotalMedals);
         const label = d[currentFilterKeyword];
-        if (r < 16) return "";
-        if (r < 26 && label.length > 10) return `${label.slice(0, 8)}…`;
-        if (r < 36 && label.length > 16) return `${label.slice(0, 14)}…`;
+        const maxChars = Math.floor(r / 4);
+        if (r < 20) return "";
+        if (label.length > maxChars) {
+          return label.slice(0, maxChars - 2) + "...";
+        }
         return label;
       });
 

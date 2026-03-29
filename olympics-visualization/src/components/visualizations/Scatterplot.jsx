@@ -150,6 +150,12 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
 
     yAxisGroup.transition(transition).call(d3.axisLeft(yScale));
 
+    // Style Axes for Catppuccin
+    xAxisGroup.selectAll("path, line").attr("stroke", "#585b70"); // Surface2
+    xAxisGroup.selectAll("text").attr("fill", "#bac2de"); // Subtext1
+    yAxisGroup.selectAll("path, line").attr("stroke", "#585b70"); // Surface2
+    yAxisGroup.selectAll("text").attr("fill", "#bac2de"); // Subtext1
+
     svg
       .selectAll(".x-axis-label")
       .data([null])
@@ -157,6 +163,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
       .attr("class", "axislabel unselectable x-axis-label")
       .attr("transform", `translate(${width / 2},${height - 5})`)
       .style("text-anchor", "middle")
+      .style("fill", "#cdd6f4") // Text
       .text("Population");
 
     svg
@@ -168,6 +175,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
       .attr("y", 15)
       .attr("x", 0 - height / 2)
       .style("text-anchor", "middle")
+      .style("fill", "#cdd6f4") // Text
       .text("Medals");
 
     const dots = svg.selectAll(".dot").data(processedData, (d) => d.code);
@@ -179,7 +187,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
       .attr("r", (d) => radiusScale(d.medals))
       .attr("cx", (d) => xScale(d.population))
       .attr("cy", (d) => yScale(d.medals))
-      .attr("stroke", "#333")
+      .attr("stroke", "#11111b") // Crust
       .attr("fill", (d) => d.color)
       .attr("opacity", 0)
       .transition(transition)
@@ -202,15 +210,19 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
           y: event.pageY,
           content: `<strong>${d.name}</strong><br/>
                     Population: ${d.population.toLocaleString()}<br/>
-                    <center>🥇 ${d.gold} | 🥈 ${d.silver} | 🥉 ${d.bronze}</center>
-                    Total Medals: ${d.medals}`,
+                    <center>
+                      <span style="color: #f9e2af">🥇 ${d.gold}</span> | 
+                      <span style="color: #bac2de">🥈 ${d.silver}</span> | 
+                      <span style="color: #fab387">🥉 ${d.bronze}</span>
+                    </center>
+                    Total Medals: ${d.total}`,
         });
         d3.select(event.currentTarget)
           .transition()
           .duration(750)
           .ease(d3.easeElastic)
           .attr("r", (d) => radiusScale(d.medals) + 4)
-          .attr("stroke", "#fff");
+          .attr("stroke", "#cdd6f4"); // Text
       })
       .on("mouseout", (event) => {
         setTooltipState((prev) => ({ ...prev, show: false }));
@@ -219,7 +231,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
           .duration(750)
           .ease(d3.easeElastic)
           .attr("r", (d) => radiusScale(d.medals))
-          .attr("stroke", "#333");
+          .attr("stroke", "#11111b"); // Crust
       });
   }, [
     countryData,

@@ -1,42 +1,28 @@
 .main-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+  background-color: var(--ctp-base);
+  color: var(--ctp-text);
+  overflow: hidden;
+  height: 100vh;
 }
-
-
 
 .visualizations-container {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 45% 55%;
-    grid-template-rows: 50% 50%; 
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  flex-grow: 1;
+  gap: 10px;
+  padding: 10px;
+  background-color: var(--ctp-crust);
 }
 
-.bubblechart {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #333;
-}
-
-.worldmap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #333;
-}
-
-.scatterplot {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #333;
-}
-
-.linechart {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #333;
+.vis-cell {
+  background-color: var(--ctp-mantle);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ctp-surface0);
 }

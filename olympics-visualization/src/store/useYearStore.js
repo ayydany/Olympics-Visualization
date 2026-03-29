@@ -6,7 +6,7 @@ const years = [
   2012,
 ];
 
-const countryColors = ["#fb8072", "#ffffb3", "#8dd3c7", "#bebada"];
+const countryColors = ["#cba6f7", "#f9e2af", "#a6e3a1", "#89b4fa"];
 
 const useYearStore = create((set, get) => ({
   years,
@@ -102,7 +102,7 @@ const useYearStore = create((set, get) => ({
   getCountryColor: (code) => {
     const selection = get().countrySelection;
     const idx = selection.indexOf(code);
-    if (idx === -1) return "#bebada";
+    if (idx === -1) return "#313244"; // Surface0
     return countryColors[idx % countryColors.length];
   },
   filteredYears: () => {

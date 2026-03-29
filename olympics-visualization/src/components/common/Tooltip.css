@@ -2,19 +2,25 @@
     position: absolute;
     z-index: 1070;
     pointer-events: none;
-    max-width: 200px;
+    max-width: 250px;
 }
 
 .custom-tooltip .tooltip-inner {
-    padding: 0.5rem 0.8rem;
-    color: #fff;
+    padding: 0.6rem 1rem;
+    color: var(--ctp-text);
     text-align: center;
-    background-color: rgba(0, 0, 0, 0.9);
-    border-radius: 0.4rem;
-    font-size: 0.875rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    background-color: var(--ctp-mantle);
+    border: 1px solid var(--ctp-surface0);
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.5);
+    font-family: 'Montserrat', sans-serif;
 }
 
 .custom-tooltip .tooltip-inner center {
-    margin: 4px 0;
+    margin: 6px 0;
+}
+
+.custom-tooltip .tooltip-inner strong {
+    color: var(--ctp-mauve);
 }
