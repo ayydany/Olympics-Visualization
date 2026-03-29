@@ -103,12 +103,14 @@ const MainComponent = () => {
               <Scatterplot
                 countryData={countryData}
                 populationData={populationData}
+                dictionaryData={dictionaryData}
                 setTooltipState={setTooltipState}
               />
             </div>
             <div className="vis-cell">
               <Linechart
                 countryData={countryData}
+                dictionaryData={dictionaryData}
                 setTooltipState={setTooltipState}
               />
             </div>
