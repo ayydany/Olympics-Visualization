@@ -153,32 +153,36 @@ const MainComponent = () => {
     <div className="main-container flex flex-col h-screen bg-ctp-base text-ctp-text overflow-hidden relative">
       <Header dictionaryData={dictionaryData} />
       
-      {/* Selector Menu Button */}
-      <div className="absolute top-4 right-4 z-[1000]">
+      {/* Selector Menu Button - Absolute Top Right */}
+      <div className="fixed top-2 right-2 z-[2000]">
         <button 
           onClick={() => setShowMenu(!showMenu)}
-          className="bg-ctp-surface0 hover:bg-ctp-surface1 text-ctp-text px-3 py-1 rounded-lg border border-ctp-surface2 shadow-lg transition-colors flex items-center gap-2 text-sm font-bold"
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-ctp-mantle/80 backdrop-blur-md border border-ctp-surface1 text-ctp-mauve shadow-2xl hover:bg-ctp-surface0 hover:scale-110 transition-all duration-300 group"
+          title="Toggle Visualizations"
         >
-          <span>Visualizations</span>
-          <span className={`transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`}>▼</span>
+          <span className={`text-2xl transition-transform duration-700 ${showMenu ? 'rotate-180' : 'group-hover:rotate-90'}`}>⚙</span>
         </button>
         
         {showMenu && (
-          <div className="absolute right-0 mt-2 w-48 bg-ctp-mantle border border-ctp-surface1 rounded-xl shadow-2xl p-3 flex flex-col gap-2">
+          <div className="absolute right-0 mt-3 w-56 bg-ctp-mantle/95 backdrop-blur-xl border border-ctp-mauve/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
+            <div className="text-xs font-black uppercase tracking-[0.2em] text-ctp-subtext0 mb-1 px-1 opacity-60">Visible Charts</div>
             {Object.entries({
               worldmap: "World Map",
               bubblechart: "Bubble Chart",
               scatterplot: "Scatter Plot",
               linechart: "Line Chart"
             }).map(([id, label]) => (
-              <label key={id} className="flex items-center gap-3 cursor-pointer group p-1 rounded hover:bg-ctp-surface0 transition-colors">
-                <input 
-                  type="checkbox" 
-                  checked={visibleCharts[id]} 
-                  onChange={() => toggleChart(id)}
-                  className="w-4 h-4 rounded border-ctp-surface2 text-ctp-mauve focus:ring-ctp-mauve bg-ctp-base"
-                />
-                <span className={`text-sm font-medium ${visibleCharts[id] ? 'text-ctp-text' : 'text-ctp-subtext0'}`}>{label}</span>
+              <label key={id} className="flex items-center justify-between cursor-pointer group px-3 py-2 rounded-xl hover:bg-ctp-mauve/10 transition-all duration-200">
+                <span className={`text-sm font-bold tracking-tight ${visibleCharts[id] ? 'text-ctp-text' : 'text-ctp-subtext1'}`}>{label}</span>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={visibleCharts[id]} 
+                    onChange={() => toggleChart(id)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-ctp-surface1 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ctp-mauve"></div>
+                </div>
               </label>
             ))}
           </div>
