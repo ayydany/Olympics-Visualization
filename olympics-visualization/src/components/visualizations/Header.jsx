@@ -8,14 +8,11 @@ const Header = ({ dictionaryData }) => {
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   
-  const yearFilter = useYearStore((state) => state.yearFilter);
-  const setYearFilter = useYearStore((state) => state.setYearFilter);
-  const years = useYearStore((state) => state.years);
-  const countrySelection = useYearStore((state) => state.countrySelection);
-  const currentState = useYearStore((state) => state.currentState);
-  const sportFilter = useYearStore((state) => state.sportFilter);
-  const disciplineFilter = useYearStore((state) => state.disciplineFilter);
-  const eventFilter = useYearStore((state) => state.eventFilter);
+  const { 
+    yearFilter, setYearFilter, years, 
+    countrySelection, currentState, 
+    sportFilter, disciplineFilter, eventFilter 
+  } = useYearStore();
 
   const dictionaryMap = useMemo(() => {
     if (!dictionaryData) return {};
@@ -25,168 +22,121 @@ const Header = ({ dictionaryData }) => {
     }, {});
   }, [dictionaryData]);
 
-  const labelText = useMemo(() => {
+  const countriesText = useMemo(() => {
     const names = countrySelection.map((code) => dictionaryMap[code] || code);
-    let countriesText = "";
-    
-    if (names.length === 0) {
-      countriesText = "Every country";
-    } else if (names.length === 1) {
-      countriesText = names[0];
-    } else {
-      const namesCopy = [...names];
-      const last = namesCopy.pop();
-      countriesText = `${namesCopy.join(", ")} and ${last}`;
-    }
+    if (names.length === 0) return "Every country";
+    if (names.length === 1) return names[0];
+    const namesCopy = [...names];
+    const last = namesCopy.pop();
+    return `${namesCopy.join(", ")} and ${last}`;
+  }, [countrySelection, dictionaryMap]);
 
-    let filterLabel = "All Sports";
-    if (currentState === 1) filterLabel = sportFilter;
-    if (currentState === 2) filterLabel = disciplineFilter;
-    if (currentState === 3) filterLabel = eventFilter;
-
-    return (
-      <h1 className="text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-ctp-text whitespace-nowrap overflow-hidden text-ellipsis px-0">
-        <span className="text-ctp-mauve">{countriesText}</span>
-        <span className="text-ctp-subtext1"> on </span>
-        <span className="text-ctp-mauve">{filterLabel}</span>
-        <span className="text-ctp-subtext1"> from </span>
-        <span className="text-ctp-mauve">{yearFilter.start}</span>
-        <span className="text-ctp-subtext1"> to </span>
-        <span className="text-ctp-mauve">{yearFilter.end}</span>
-      </h1>
-    );
-  }, [countrySelection, dictionaryMap, yearFilter, currentState, sportFilter, disciplineFilter, eventFilter]);
+  const filterLabel = useMemo(() => {
+    if (currentState === 1) return sportFilter;
+    if (currentState === 2) return disciplineFilter;
+    if (currentState === 3) return eventFilter;
+    return "All Sports";
+  }, [currentState, sportFilter, disciplineFilter, eventFilter]);
 
   // Handle ResizeObserver for the slider container
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
     const resizeObserver = new ResizeObserver((entries) => {
-      if (!entries || entries.length === 0) return;
-      const { width, height } = entries[0].contentRect;
-      setDimensions({ width, height });
+      if (!entries?.length) return;
+      // Get the width of the container
+      setDimensions({ width: entries[0].contentRect.width });
     });
-
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
   }, []);
 
   useEffect(() => {
     if (dimensions.width === 0) return;
-
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const margin = { top: 10, right: 30, bottom: 10, left: 30 };
+    // Balanced margins to prevent clipping
+    const margin = { top: 20, right: 40, bottom: 10, left: 40 };
     const width = dimensions.width;
+    const sliderWidth = Math.max(0, width - margin.left - margin.right);
     
-    const slider = svg
-      .append("g")
-      .attr("class", "slider")
-      .attr("transform", `translate(${margin.left}, 10)`);
+    const slider = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const sliderWidth = width - margin.left - margin.right;
-
-    const xScale = d3
-      .scaleLinear()
-      .domain([0, years.length - 1])
-      .range([0, sliderWidth])
-      .clamp(true);
-
-    // Initial handle positions based on store
+    const xScale = d3.scaleLinear().domain([0, years.length - 1]).range([0, sliderWidth]).clamp(true);
     const startIdx = years.indexOf(yearFilter.start);
     const endIdx = years.indexOf(yearFilter.end);
 
     // Track
-    slider
-      .append("line")
-      .attr("class", "track")
-      .attr("x1", xScale.range()[0])
-      .attr("x2", xScale.range()[1]);
+    slider.append("line").attr("class", "track").attr("x1", 0).attr("x2", sliderWidth);
+    const trackInset = slider.append("line").attr("class", "track-inset").attr("x1", xScale(startIdx)).attr("x2", xScale(endIdx));
 
-    const trackInset = slider
-      .append("line")
-      .attr("class", "track-inset")
-      .attr("x1", xScale(startIdx))
-      .attr("x2", xScale(endIdx));
+    // Handle Year Labels (Above handles)
+    const label1 = slider.append("text").attr("class", "handle-label").attr("y", -12).attr("text-anchor", "middle").text(years[startIdx]);
+    const label2 = slider.append("text").attr("class", "handle-label").attr("y", -12).attr("text-anchor", "middle").text(years[endIdx]);
 
-    const handle1 = slider
-      .append("circle")
-      .attr("class", "handle")
-      .attr("r", 7)
-      .attr("cx", xScale(startIdx));
+    const handle1 = slider.append("circle").attr("class", "handle").attr("r", 7).attr("cx", xScale(startIdx));
+    const handle2 = slider.append("circle").attr("class", "handle").attr("r", 7).attr("cx", xScale(endIdx));
 
-    const handle2 = slider
-      .append("circle")
-      .attr("class", "handle")
-      .attr("r", 7)
-      .attr("cx", xScale(endIdx));
+    // Update initial label positions
+    label1.attr("x", xScale(startIdx));
+    label2.attr("x", xScale(endIdx));
 
     let selectedHandle = null;
+    let selectedLabel = null;
 
-    const trackOverlay = slider
-      .append("line")
-      .attr("class", "track-overlay")
-      .attr("x1", xScale.range()[0])
-      .attr("x2", xScale.range()[1])
-      .call(
-        d3
-          .drag()
-          .on("drag", (event) => {
-            let target = Math.round(xScale.invert(event.x));
-            if (selectedHandle === null) {
-              const h1Dist = Math.abs(target - xScale.invert(handle1.attr("cx")));
-              const h2Dist = Math.abs(target - xScale.invert(handle2.attr("cx")));
-              selectedHandle = h1Dist < h2Dist ? handle1 : handle2;
+    slider.append("line").attr("class", "track-overlay").attr("x1", 0).attr("x2", sliderWidth)
+      .call(d3.drag()
+        .on("drag", (event) => {
+          let target = Math.round(xScale.invert(event.x));
+          if (selectedHandle === null) {
+            const d1 = Math.abs(target - xScale.invert(handle1.attr("cx")));
+            const d2 = Math.abs(target - xScale.invert(handle2.attr("cx")));
+            if (d1 < d2) {
+              selectedHandle = handle1;
+              selectedLabel = label1;
+            } else {
+              selectedHandle = handle2;
+              selectedLabel = label2;
             }
-            
-            selectedHandle.attr("cx", xScale(target)).classed("active", true);
-            
-            // Update inset track
-            const idx1 = Math.round(xScale.invert(handle1.attr("cx")));
-            const idx2 = Math.round(xScale.invert(handle2.attr("cx")));
-            trackInset.attr("x1", xScale(Math.min(idx1, idx2)))
-                      .attr("x2", xScale(Math.max(idx1, idx2)));
-          })
-          .on("end", () => {
-            handle1.classed("active", false);
-            handle2.classed("active", false);
-            selectedHandle = null;
+          }
+          
+          selectedHandle.attr("cx", xScale(target)).classed("active", true);
+          selectedLabel.attr("x", xScale(target)).text(years[target]);
+          
+          // Update inset track
+          const i1 = Math.round(xScale.invert(handle1.attr("cx")));
+          const i2 = Math.round(xScale.invert(handle2.attr("cx")));
+          trackInset.attr("x1", xScale(Math.min(i1, i2))).attr("x2", xScale(Math.max(i1, i2)));
+        })
+        .on("end", () => {
+          if (selectedHandle) selectedHandle.classed("active", false);
+          selectedHandle = null;
+          selectedLabel = null;
 
-            const idx1 = Math.round(xScale.invert(handle1.attr("cx")));
-            const idx2 = Math.round(xScale.invert(handle2.attr("cx")));
-            const startYear = years[Math.min(idx1, idx2)];
-            const endYear = years[Math.max(idx1, idx2)];
-            
-            setYearFilter({ start: startYear, end: endYear });
-          })
+          const i1 = Math.round(xScale.invert(handle1.attr("cx")));
+          const i2 = Math.round(xScale.invert(handle2.attr("cx")));
+          setYearFilter({ start: years[Math.min(i1, i2)], end: years[Math.max(i1, i2)] });
+        })
       );
 
-    // Ticks - filter to avoid overlap
-    const tickStep = dimensions.width < 600 ? 4 : dimensions.width < 900 ? 2 : 1;
-    
-    slider
-      .append("g")
-      .attr("class", "ticks unselectable")
-      .attr("transform", "translate(0, 20)")
-      .selectAll("text")
-      .data(years.filter((_, i) => i % tickStep === 0))
-      .enter()
-      .append("text")
-      .attr("x", (d) => xScale(years.indexOf(d)))
-      .attr("text-anchor", "middle")
-      .text((d) => d);
+    // Ticks (Bottom)
+    const tickStep = width < 600 ? 4 : width < 900 ? 2 : 1;
+    slider.append("g").attr("class", "ticks unselectable").attr("transform", "translate(0, 22)")
+      .selectAll("text").data(years.filter((_, i) => i % tickStep === 0)).enter()
+      .append("text").attr("x", d => xScale(years.indexOf(d))).attr("text-anchor", "middle").text(d => d);
 
   }, [dimensions, years, setYearFilter, yearFilter.start, yearFilter.end]);
 
   return (
-    <header className="w-full bg-ctp-mantle border-b border-ctp-surface0 shadow-lg z-50 px-0 py-2 flex flex-col gap-0">
-      <div className="flex items-center justify-start overflow-hidden pl-6">
-        {labelText}
+    <header className="header-new max-w-full overflow-hidden">
+      <div className="title-row overflow-hidden">
+        <h1 className="title-text truncate">
+          <span className="accent">{countriesText}</span> on <span className="accent">{filterLabel}</span> from <span className="accent">{yearFilter.start}</span> to <span className="accent">{yearFilter.end}</span>
+        </h1>
       </div>
-      <div ref={containerRef} className="w-full h-[40px] px-6">
-        <svg ref={svgRef} className="w-full h-full overflow-visible" />
+      <div ref={containerRef} className="slider-row px-10">
+        <svg ref={svgRef} className="slider-svg w-full h-full" />
       </div>
     </header>
   );
