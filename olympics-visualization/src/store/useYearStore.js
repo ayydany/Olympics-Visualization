@@ -105,12 +105,6 @@ const useYearStore = create((set, get) => ({
     if (idx === -1) return "#313244"; // Surface0
     return countryColors[idx % countryColors.length];
   },
-  filteredYears: () => {
-    const { years: yearsList, yearFilter } = get();
-    return yearsList.filter(
-      (year) => year >= yearFilter.start && year <= yearFilter.end
-    );
-  },
 }));
 
 export default useYearStore;

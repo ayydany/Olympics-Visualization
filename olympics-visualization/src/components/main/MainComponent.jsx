@@ -30,6 +30,11 @@ const MainComponent = () => {
     x: 0,
     y: 0,
   });
+
+  const updateTooltipState = React.useCallback((state) => {
+    setTooltipState(state);
+  }, []);
+
   const setDefaultCountries = useYearStore((state) => state.setDefaultCountries);
   const countrySelection = useYearStore((state) => state.countrySelection);
 
@@ -105,19 +110,19 @@ const MainComponent = () => {
           >
             <div key="worldmap" className="vis-cell group">
               <div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ctp-surface0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10 flex items-center justify-center text-[10px] text-ctp-subtext1 uppercase tracking-widest font-bold">World Map</div>
-              <Worldmap dictionaryData={dictionaryData} setTooltipState={setTooltipState} />
+              <Worldmap dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
             </div>
             <div key="bubblechart" className="vis-cell group">
               <div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ctp-surface0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10 flex items-center justify-center text-[10px] text-ctp-subtext1 uppercase tracking-widest font-bold">Bubble Chart</div>
-              <Bubblechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={setTooltipState} />
+              <Bubblechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
             </div>
             <div key="scatterplot" className="vis-cell group">
               <div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ctp-surface0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10 flex items-center justify-center text-[10px] text-ctp-subtext1 uppercase tracking-widest font-bold">Scatter Plot</div>
-              <Scatterplot countryData={countryData} populationData={populationData} dictionaryData={dictionaryData} setTooltipState={setTooltipState} />
+              <Scatterplot countryData={countryData} populationData={populationData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
             </div>
             <div key="linechart" className="vis-cell group">
               <div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ctp-surface0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-10 flex items-center justify-center text-[10px] text-ctp-subtext1 uppercase tracking-widest font-bold">Line Chart</div>
-              <Linechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={setTooltipState} />
+              <Linechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
             </div>
           </ResponsiveGridLayout>
         )}

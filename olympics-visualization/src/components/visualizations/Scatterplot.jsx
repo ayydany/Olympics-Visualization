@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import useYearStore from "../../store/useYearStore";
 import "./Scatterplot.css";
 
 const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipState }) => {
   const svgRef = useRef();
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const yearFilter = useYearStore((state) => state.yearFilter);
   const countrySelection = useYearStore((state) => state.countrySelection);
   const currentState = useYearStore((state) => state.currentState);
@@ -13,12 +14,27 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
   const eventFilter = useYearStore((state) => state.eventFilter);
   const getCountryColor = useYearStore((state) => state.getCountryColor);
 
+  // Handle ResizeObserver
   useEffect(() => {
-    if (!countryData || !populationData || !countrySelection.length) return;
     const container = svgRef.current;
-    const rect = container.getBoundingClientRect();
-    const width = rect.width || 600;
-    const height = rect.height || 250;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) return;
+      const { width, height } = entries[0].contentRect;
+      setDimensions({ width, height });
+    });
+
+    resizeObserver.observe(container.parentElement);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!countryData || !populationData || !countrySelection.length || dimensions.width === 0) return;
+    
+    const container = svgRef.current;
+    const { width, height } = dimensions;
     const margin = { top: 30, right: 30, bottom: 40, left: 60 };
 
     const populationMap = new Map();
@@ -128,27 +144,24 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
       .attr("width", width)
       .attr("height", height);
 
+    svg.selectAll("*").remove();
+
     const transition = svg.transition().duration(750).ease(d3.easeExpOut);
 
     const xAxisGroup = svg
-      .selectAll(".xAxis")
-      .data([null])
-      .join("g")
+      .append("g")
       .attr("class", "xAxis unselectable")
       .attr("transform", `translate(0,${height - margin.bottom})`);
 
     const yAxisGroup = svg
-      .selectAll(".yAxis")
-      .data([null])
-      .join("g")
+      .append("g")
       .attr("class", "yAxis unselectable")
       .attr("transform", `translate(${margin.left},0)`);
 
     xAxisGroup
-      .transition(transition)
       .call(d3.axisBottom(xScale).tickFormat(d3.format("~s")));
 
-    yAxisGroup.transition(transition).call(d3.axisLeft(yScale));
+    yAxisGroup.call(d3.axisLeft(yScale));
 
     // Style Axes for Catppuccin
     xAxisGroup.selectAll("path, line").attr("stroke", "#585b70"); // Surface2
@@ -157,9 +170,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
     yAxisGroup.selectAll("text").attr("fill", "#bac2de"); // Subtext1
 
     svg
-      .selectAll(".x-axis-label")
-      .data([null])
-      .join("text")
+      .append("text")
       .attr("class", "axislabel unselectable x-axis-label")
       .attr("transform", `translate(${width / 2},${height - 5})`)
       .style("text-anchor", "middle")
@@ -167,9 +178,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
       .text("Population");
 
     svg
-      .selectAll(".y-axis-label")
-      .data([null])
-      .join("text")
+      .append("text")
       .attr("class", "axislabel unselectable y-axis-label")
       .attr("transform", "rotate(-90)")
       .attr("y", 15)
@@ -193,15 +202,6 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
       .transition(transition)
       .attr("opacity", 1);
 
-    dots
-      .transition(transition)
-      .attr("cx", (d) => xScale(d.population))
-      .attr("cy", (d) => yScale(d.medals))
-      .attr("fill", (d) => d.color)
-      .attr("opacity", 1);
-
-    dots.exit().transition(transition).attr("r", 0).remove();
-
     svg.selectAll(".dot")
       .on("mouseover", (event, d) => {
         setTooltipState({
@@ -219,17 +219,24 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
         });
         d3.select(event.currentTarget)
           .transition()
-          .duration(750)
-          .ease(d3.easeElastic)
+          .duration(200)
+          .ease(d3.easeCubicOut)
           .attr("r", (d) => radiusScale(d.medals) + 4)
           .attr("stroke", "#cdd6f4"); // Text
+      })
+      .on("mousemove", (event) => {
+        setTooltipState((prev) => ({
+          ...prev,
+          x: event.pageX,
+          y: event.pageY
+        }));
       })
       .on("mouseout", (event) => {
         setTooltipState((prev) => ({ ...prev, show: false }));
         d3.select(event.currentTarget)
           .transition()
-          .duration(750)
-          .ease(d3.easeElastic)
+          .duration(200)
+          .ease(d3.easeCubicOut)
           .attr("r", (d) => radiusScale(d.medals))
           .attr("stroke", "#11111b"); // Crust
       });
@@ -245,11 +252,12 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
     setTooltipState,
     sportFilter,
     yearFilter,
+    dimensions,
   ]);
 
   return (
-    <div id="scatterplot">
-      <svg ref={svgRef} width="100%" height="100%" />
+    <div id="scatterplot" className="w-full h-full relative overflow-hidden bg-transparent">
+      <svg ref={svgRef} className="w-full h-full block" />
     </div>
   );
 };

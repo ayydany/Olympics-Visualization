@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import * as d3 from "d3";
 import useYearStore from "../../store/useYearStore";
 import "./Linechart.css";
 
 const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
   const svgRef = useRef();
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const years = useYearStore((state) => state.years);
-  const filteredYears = useYearStore((state) => state.filteredYears());
   const yearFilter = useYearStore((state) => state.yearFilter);
   const countrySelection = useYearStore((state) => state.countrySelection);
   const currentState = useYearStore((state) => state.currentState);
@@ -15,13 +15,33 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
   const eventFilter = useYearStore((state) => state.eventFilter);
   const getCountryColor = useYearStore((state) => state.getCountryColor);
 
+  const filteredYears = useMemo(() => {
+    return years.filter(
+      (year) => year >= yearFilter.start && year <= yearFilter.end
+    );
+  }, [years, yearFilter]);
+
+  // Handle ResizeObserver
   useEffect(() => {
-    if (!countryData || !countrySelection.length) return;
+    const container = svgRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) return;
+      const { width, height } = entries[0].contentRect;
+      setDimensions({ width, height });
+    });
+
+    resizeObserver.observe(container.parentElement);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!countryData || !countrySelection.length || dimensions.width === 0) return;
 
     const container = svgRef.current;
-    const rect = container.getBoundingClientRect();
-    const width = rect.width || 800;
-    const height = rect.height || 300;
+    const { width, height } = dimensions;
     const margin = { top: 30, right: 40, bottom: 40, left: 50 };
 
     const filtered = countryData.filter((d) => {
@@ -103,31 +123,28 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .attr("width", width)
       .attr("height", height);
 
+    svg.selectAll("*").remove();
+
     const transition = svg.transition().duration(750).ease(d3.easeExpOut);
 
     const xAxisGroup = svg
-      .selectAll(".xAxis")
-      .data([null])
-      .join("g")
+      .append("g")
       .attr("class", "xAxis unselectable")
       .attr("transform", `translate(0,${height - margin.bottom})`);
 
     const yAxisGroup = svg
-      .selectAll(".yAxis")
-      .data([null])
-      .join("g")
+      .append("g")
       .attr("class", "yAxis unselectable")
       .attr("transform", `translate(${margin.left},0)`);
 
     xAxisGroup
-      .transition(transition)
       .call(
         d3
           .axisBottom(xScale)
           .tickValues(activeYears.filter((_, i) => i % 2 === 0))
       );
 
-    yAxisGroup.transition(transition).call(d3.axisLeft(yScale));
+    yAxisGroup.call(d3.axisLeft(yScale));
 
     // Style Axes for Catppuccin
     xAxisGroup.selectAll("path, line").attr("stroke", "#585b70"); // Surface2
@@ -136,9 +153,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
     yAxisGroup.selectAll("text").attr("fill", "#bac2de"); // Subtext1
 
     svg
-      .selectAll(".x-axis-label")
-      .data([null])
-      .join("text")
+      .append("text")
       .attr("class", "axislabel unselectable x-axis-label")
       .attr("transform", `translate(${width / 2},${height - 5})`)
       .style("text-anchor", "middle")
@@ -146,9 +161,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .text("Years");
 
     svg
-      .selectAll(".y-axis-label")
-      .data([null])
-      .join("text")
+      .append("text")
       .attr("class", "axislabel unselectable y-axis-label")
       .attr("transform", "rotate(-90)")
       .attr("y", 15)
@@ -179,13 +192,6 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .transition(transition)
       .attr("opacity", 1);
 
-    paths
-      .transition(transition)
-      .attr("stroke", (d) => d.series.color)
-      .attr("d", (d) => line(d.values));
-
-    paths.exit().transition(transition).attr("opacity", 0).remove();
-
     const maxTotal = d3.max(pathData, (d) =>
       d3.max(d.values, (v) => v.total)
     );
@@ -214,23 +220,9 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .attr("class", (d) => `dot id${d.id}`)
       .attr("fill", (d) => d.color)
       .attr("cx", (d) => xScale(d.year))
-      .attr("cy", (d) => yScale(0))
-      .attr("r", 0)
+      .attr("cy", (d) => yScale(d.total))
+      .attr("r", (d) => d.r)
       .attr("stroke", "#11111b") // Crust
-      .transition(transition)
-      .attr("cy", (d) => yScale(d.total))
-      .attr("r", (d) => d.r);
-
-    dots
-      .transition(transition)
-      .attr("fill", (d) => d.color)
-      .attr("cx", (d) => xScale(d.year))
-      .attr("cy", (d) => yScale(d.total))
-      .attr("r", (d) => d.r);
-
-    dots.exit().transition(transition).attr("r", 0).remove();
-
-    svg.selectAll(".dot")
       .on("mouseover", (event, d) => {
         setTooltipState({
           show: true,
@@ -246,20 +238,28 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
         });
         d3.select(event.currentTarget)
           .transition()
-          .duration(750)
-          .ease(d3.easeElastic)
+          .duration(200)
+          .ease(d3.easeCubicOut)
           .attr("r", d.r + 3)
           .attr("stroke", "#cdd6f4"); // Text
+      })
+      .on("mousemove", (event) => {
+        setTooltipState((prev) => ({
+          ...prev,
+          x: event.pageX,
+          y: event.pageY
+        }));
       })
       .on("mouseout", (event, d) => {
         setTooltipState((prev) => ({ ...prev, show: false }));
         d3.select(event.currentTarget)
           .transition()
-          .duration(750)
-          .ease(d3.easeElastic)
+          .duration(200)
+          .ease(d3.easeCubicOut)
           .attr("r", d.r)
           .attr("stroke", "#11111b"); // Crust
       });
+
   }, [
     countryData,
     countrySelection,
@@ -273,11 +273,12 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
     sportFilter,
     yearFilter,
     years,
+    dimensions,
   ]);
 
   return (
-    <div id="linechart">
-      <svg ref={svgRef} width="100%" height="100%" />
+    <div id="linechart" className="w-full h-full relative overflow-hidden bg-transparent">
+      <svg ref={svgRef} className="w-full h-full block" />
     </div>
   );
 };
