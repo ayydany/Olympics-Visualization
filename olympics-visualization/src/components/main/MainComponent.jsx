@@ -24,6 +24,14 @@ const MainComponent = () => {
   const [countryData, setCountyData] = useState(null);
   const [populationData, setPopulationData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showMenu, setShowMenu] = useState(false);
+  const [visibleCharts, setVisibleCharts] = useState({
+    worldmap: true,
+    bubblechart: true,
+    scatterplot: true,
+    linechart: true,
+  });
+
   const [tooltipState, setTooltipState] = useState({
     show: false,
     content: "",
@@ -96,7 +104,11 @@ const MainComponent = () => {
     return dictionaryData && countryData && populationData;
   }, [dictionaryData, countryData, populationData]);
 
-  const layouts = {
+  const toggleChart = (id) => {
+    setVisibleCharts(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const initialLayouts = {
     lg: [
       { i: "worldmap", x: 0, y: 0, w: 6, h: 15 },
       { i: "bubblechart", x: 6, y: 0, w: 6, h: 15 },
@@ -129,15 +141,56 @@ const MainComponent = () => {
     ],
   };
 
+  const filteredLayouts = useMemo(() => {
+    const newLayouts = {};
+    Object.keys(initialLayouts).forEach(bp => {
+      newLayouts[bp] = initialLayouts[bp].filter(item => visibleCharts[item.i]);
+    });
+    return newLayouts;
+  }, [visibleCharts]);
+
   return (
-    <div className="main-container flex flex-col h-screen bg-ctp-base text-ctp-text overflow-hidden">
-      <Header title="Header" dictionaryData={dictionaryData} />
+    <div className="main-container flex flex-col h-screen bg-ctp-base text-ctp-text overflow-hidden relative">
+      <Header dictionaryData={dictionaryData} />
+      
+      {/* Selector Menu Button */}
+      <div className="absolute top-4 right-4 z-[1000]">
+        <button 
+          onClick={() => setShowMenu(!showMenu)}
+          className="bg-ctp-surface0 hover:bg-ctp-surface1 text-ctp-text px-3 py-1 rounded-lg border border-ctp-surface2 shadow-lg transition-colors flex items-center gap-2 text-sm font-bold"
+        >
+          <span>Visualizations</span>
+          <span className={`transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`}>▼</span>
+        </button>
+        
+        {showMenu && (
+          <div className="absolute right-0 mt-2 w-48 bg-ctp-mantle border border-ctp-surface1 rounded-xl shadow-2xl p-3 flex flex-col gap-2">
+            {Object.entries({
+              worldmap: "World Map",
+              bubblechart: "Bubble Chart",
+              scatterplot: "Scatter Plot",
+              linechart: "Line Chart"
+            }).map(([id, label]) => (
+              <label key={id} className="flex items-center gap-3 cursor-pointer group p-1 rounded hover:bg-ctp-surface0 transition-colors">
+                <input 
+                  type="checkbox" 
+                  checked={visibleCharts[id]} 
+                  onChange={() => toggleChart(id)}
+                  className="w-4 h-4 rounded border-ctp-surface2 text-ctp-mauve focus:ring-ctp-mauve bg-ctp-base"
+                />
+                <span className={`text-sm font-medium ${visibleCharts[id] ? 'text-ctp-text' : 'text-ctp-subtext0'}`}>{label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div ref={gridContainerRef} className="flex-grow overflow-y-auto bg-ctp-crust p-2 relative">
         {isLoading && <div className="p-3 text-ctp-subtext0 font-medium text-center mt-10">Loading dataset...</div>}
         {visReady && (
           <ResponsiveGridLayout
             className="layout"
-            layouts={layouts}
+            layouts={filteredLayouts}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xss: 0 }}
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xss: 2 }}
             rowHeight={20}
@@ -145,30 +198,38 @@ const MainComponent = () => {
             draggableHandle=".drag-handle"
             margin={[10, 10]}
           >
-            <div key="worldmap" className="vis-cell group">
-              <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
-                <span className="leading-none pointer-events-none">⊹</span>
+            {visibleCharts.worldmap && (
+              <div key="worldmap" className="vis-cell group">
+                <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
+                  <span className="leading-none pointer-events-none">⊹</span>
+                </div>
+                <Worldmap dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
               </div>
-              <Worldmap dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
-            </div>
-            <div key="bubblechart" className="vis-cell group">
-              <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
-                <span className="leading-none pointer-events-none">⊹</span>
+            )}
+            {visibleCharts.bubblechart && (
+              <div key="bubblechart" className="vis-cell group">
+                <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
+                  <span className="leading-none pointer-events-none">⊹</span>
+                </div>
+                <Bubblechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
               </div>
-              <Bubblechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
-            </div>
-            <div key="scatterplot" className="vis-cell group">
-              <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
-                <span className="leading-none pointer-events-none">⊹</span>
+            )}
+            {visibleCharts.scatterplot && (
+              <div key="scatterplot" className="vis-cell group">
+                <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
+                  <span className="leading-none pointer-events-none">⊹</span>
+                </div>
+                <Scatterplot countryData={countryData} populationData={populationData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
               </div>
-              <Scatterplot countryData={countryData} populationData={populationData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
-            </div>
-            <div key="linechart" className="vis-cell group">
-              <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
-                <span className="leading-none pointer-events-none">⊹</span>
+            )}
+            {visibleCharts.linechart && (
+              <div key="linechart" className="vis-cell group">
+                <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
+                  <span className="leading-none pointer-events-none">⊹</span>
+                </div>
+                <Linechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
               </div>
-              <Linechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
-            </div>
+            )}
           </ResponsiveGridLayout>
         )}
       </div>

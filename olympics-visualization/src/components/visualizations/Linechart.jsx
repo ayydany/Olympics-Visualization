@@ -40,7 +40,6 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
   useEffect(() => {
     if (!countryData || !countrySelection.length || dimensions.width === 0) return;
 
-    const container = svgRef.current;
     const { width, height } = dimensions;
     const margin = { top: 30, right: 40, bottom: 40, left: 50 };
 
@@ -102,10 +101,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
     const yMax = d3.max(filledSeries, (series) =>
       d3.max(series.values, (v) => v.total)
     );
-    if (yMax === undefined) {
-      return;
-    }
-
+    
     const yScale = d3
       .scaleLinear()
       .domain([0, yMax || 1])
@@ -118,56 +114,56 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .y((d) => yScale(d.total))
       .curve(d3.curveMonotoneX);
 
-    const svg = d3
-      .select(container)
-      .attr("width", width)
-      .attr("height", height);
-
-    svg.selectAll("*").remove();
+    const svg = d3.select(svgRef.current);
+    
+    // Persistent layers
+    let gMain = svg.select(".main-g");
+    if (gMain.empty()) {
+      gMain = svg.append("g").attr("class", "main-g");
+      gMain.append("g").attr("class", "xAxis unselectable");
+      gMain.append("g").attr("class", "yAxis unselectable");
+      gMain.append("text").attr("class", "axislabel unselectable x-axis-label");
+      gMain.append("text").attr("class", "axislabel unselectable y-axis-label");
+      gMain.append("g").attr("class", "lines-layer");
+      gMain.append("g").attr("class", "dots-layer");
+    }
 
     const transition = svg.transition().duration(750).ease(d3.easeExpOut);
 
-    const xAxisGroup = svg
-      .append("g")
-      .attr("class", "xAxis unselectable")
+    const xAxisGroup = gMain.select(".xAxis")
       .attr("transform", `translate(0,${height - margin.bottom})`);
 
-    const yAxisGroup = svg
-      .append("g")
-      .attr("class", "yAxis unselectable")
+    const yAxisGroup = gMain.select(".yAxis")
       .attr("transform", `translate(${margin.left},0)`);
 
     xAxisGroup
+      .transition(transition)
       .call(
         d3
           .axisBottom(xScale)
           .tickValues(activeYears.filter((_, i) => i % 2 === 0))
       );
 
-    yAxisGroup.call(d3.axisLeft(yScale));
+    yAxisGroup.transition(transition).call(d3.axisLeft(yScale));
 
-    // Style Axes for Catppuccin
-    xAxisGroup.selectAll("path, line").attr("stroke", "#585b70"); // Surface2
-    xAxisGroup.selectAll("text").attr("fill", "#bac2de"); // Subtext1
-    yAxisGroup.selectAll("path, line").attr("stroke", "#585b70"); // Surface2
-    yAxisGroup.selectAll("text").attr("fill", "#bac2de"); // Subtext1
+    // Style Axes for Catppuccin visibility
+    xAxisGroup.selectAll("path, line").attr("stroke", "#9399b2"); // Overlay2
+    xAxisGroup.selectAll("text").attr("fill", "#cdd6f4"); // Text
+    yAxisGroup.selectAll("path, line").attr("stroke", "#9399b2"); // Overlay2
+    yAxisGroup.selectAll("text").attr("fill", "#cdd6f4"); // Text
 
-    svg
-      .append("text")
-      .attr("class", "axislabel unselectable x-axis-label")
+    gMain.select(".x-axis-label")
       .attr("transform", `translate(${width / 2},${height - 5})`)
       .style("text-anchor", "middle")
-      .style("fill", "#cdd6f4") // Text
+      .style("fill", "#cdd6f4")
       .text("Years");
 
-    svg
-      .append("text")
-      .attr("class", "axislabel unselectable y-axis-label")
+    gMain.select(".y-axis-label")
       .attr("transform", "rotate(-90)")
       .attr("y", 15)
       .attr("x", 0 - height / 2)
       .style("text-anchor", "middle")
-      .style("fill", "#cdd6f4") // Text
+      .style("fill", "#cdd6f4")
       .text("Medals");
 
     const pathData = filledSeries.map((series, idx) => ({
@@ -178,51 +174,64 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       ),
     }));
 
-    const paths = svg.selectAll(".line").data(pathData, (d) => d.id);
+    // Lines
+    const linesLayer = gMain.select(".lines-layer");
+    linesLayer.selectAll(".line")
+      .data(pathData, (d) => d.series.country)
+      .join(
+        enter => enter.append("path")
+          .attr("class", "line")
+          .attr("fill", "none")
+          .attr("stroke-width", 2)
+          .attr("stroke", d => d.series.color)
+          .attr("opacity", 0)
+          .attr("d", d => line(d.values))
+          .call(enter => enter.transition(transition).attr("opacity", 1)),
+        update => update
+          .call(update => update.transition(transition)
+            .attr("stroke", d => d.series.color)
+            .attr("d", d => line(d.values))),
+        exit => exit.transition(transition).attr("opacity", 0).remove()
+      );
 
-    paths
-      .enter()
-      .append("path")
-      .attr("class", (d) => `line id${d.id}`)
-      .attr("stroke", (d) => d.series.color)
-      .attr("stroke-width", 2)
-      .attr("fill", "none")
-      .attr("d", (d) => line(d.values))
-      .attr("opacity", 0)
-      .transition(transition)
-      .attr("opacity", 1);
-
-    const maxTotal = d3.max(pathData, (d) =>
-      d3.max(d.values, (v) => v.total)
-    );
-    const radiusScale = d3
-      .scaleSqrt()
-      .domain([0, maxTotal || 1])
-      .range([4, 10]);
+    // Dots
+    const maxTotal = d3.max(pathData, (d) => d3.max(d.values, (v) => v.total)) || 1;
+    const radiusScale = d3.scaleSqrt().domain([0, maxTotal]).range([4, 10]);
 
     const dotsData = pathData.flatMap((d) =>
       d.values.map((v) => ({
         ...v,
         color: d.series.color,
-        id: d.id,
+        countryCode: d.series.country,
         r: radiusScale(v.total),
       }))
     );
 
-    const dots = svg.selectAll(".dot").data(
-      dotsData,
-      (d) => `${d.id}-${d.year}`
-    );
+    const dotsLayer = gMain.select(".dots-layer");
+    dotsLayer.selectAll(".dot")
+      .data(dotsData, (d) => `${d.countryCode}-${d.year}`)
+      .join(
+        enter => enter.append("circle")
+          .attr("class", "dot")
+          .attr("fill", d => d.color)
+          .attr("cx", d => xScale(d.year))
+          .attr("cy", d => yScale(0))
+          .attr("r", 0)
+          .attr("stroke", "#11111b")
+          .call(enter => enter.transition(transition)
+            .attr("cy", d => yScale(d.total))
+            .attr("r", d => d.r)),
+        update => update
+          .call(update => update.transition(transition)
+            .attr("fill", d => d.color)
+            .attr("cx", d => xScale(d.year))
+            .attr("cy", d => yScale(d.total))
+            .attr("r", d => d.r)),
+        exit => exit.transition(transition).attr("r", 0).remove()
+      );
 
-    dots
-      .enter()
-      .append("circle")
-      .attr("class", (d) => `dot id${d.id}`)
-      .attr("fill", (d) => d.color)
-      .attr("cx", (d) => xScale(d.year))
-      .attr("cy", (d) => yScale(d.total))
-      .attr("r", (d) => d.r)
-      .attr("stroke", "#11111b") // Crust
+    // Tooltips (outside transition for directness)
+    svg.selectAll(".dot")
       .on("mouseover", (event, d) => {
         setTooltipState({
           show: true,
@@ -239,9 +248,8 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
         d3.select(event.currentTarget)
           .transition()
           .duration(200)
-          .ease(d3.easeCubicOut)
           .attr("r", d.r + 3)
-          .attr("stroke", "#cdd6f4"); // Text
+          .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
         setTooltipState((prev) => ({
@@ -255,9 +263,8 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
         d3.select(event.currentTarget)
           .transition()
           .duration(200)
-          .ease(d3.easeCubicOut)
           .attr("r", d.r)
-          .attr("stroke", "#11111b"); // Crust
+          .attr("stroke", "#11111b");
       });
 
   }, [

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import "./Bubblechart.css";
 import * as d3 from "d3";
 import useYearStore from "../../store/useYearStore";
@@ -38,9 +38,6 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
     if (!dictionaryData || !countryData || dimensions.width === 0) {
       return;
     }
-
-    const container = svgRef.current;
-    if (!container) return;
 
     const { width, height } = dimensions;
 
@@ -122,47 +119,71 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       .domain(processedData.map((d) => d[currentFilterKeyword]))
       .range(catppuccinAccents);
 
-    const svg = d3
-      .select(container)
+    const svg = d3.select(svgRef.current)
       .attr("width", width)
       .attr("height", height);
 
-    svg.selectAll("*").remove();
+    // Persistent layers
+    let gBubbles = svg.select(".bubbles-g");
+    if (gBubbles.empty()) {
+      gBubbles = svg.append("g").attr("class", "bubbles-g");
+    }
 
     if (!processedData.length) {
+      gBubbles.selectAll(".bubble-g").remove();
       return;
     }
 
     const simulation = d3
       .forceSimulation(processedData)
-      .force(
-        "x",
-        d3
-          .forceX(width / 2)
-          .strength(0.08)
-      )
-      .force(
-        "y",
-        d3
-          .forceY(height / 2)
-          .strength(0.08)
-      )
+      .force("x", d3.forceX(width / 2).strength(0.08))
+      .force("y", d3.forceY(height / 2).strength(0.08))
       .force("charge", d3.forceManyBody().strength(-20))
-      .force("center_force", d3.forceCenter(width / 2, height / 2))
-      .force(
-        "collide",
-        d3
-          .forceCollide()
-          .strength(0.7)
-          .radius((d) => radiusScale(d.TotalMedals) + 3)
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collide", d3.forceCollide().strength(0.7).radius((d) => radiusScale(d.TotalMedals) + 3));
+
+    const bubbleNodes = gBubbles.selectAll(".bubble-g")
+      .data(processedData, d => d[currentFilterKeyword])
+      .join(
+        enter => {
+          const g = enter.append("g").attr("class", "bubble-g");
+          g.append("circle")
+            .attr("class", "bubble-circle")
+            .attr("stroke-width", "1.5")
+            .attr("stroke", "#11111b")
+            .attr("fill-opacity", 0.8)
+            .attr("r", 0);
+          g.append("text")
+            .attr("class", "label unselectable")
+            .style("pointer-events", "none")
+            .style("fill", "#11111b")
+            .style("font-weight", "700")
+            .style("text-anchor", "middle")
+            .style("dominant-baseline", "central");
+          return g;
+        }
       );
 
-    const bubbleGroup = svg
-      .selectAll(".bubble")
-      .data(processedData)
-      .enter()
-      .append("g")
-      .attr("class", "bubble");
+    bubbleNodes.select(".bubble-circle")
+      .transition().duration(750)
+      .attr("r", d => radiusScale(d.TotalMedals))
+      .attr("fill", d => colorScale(d[currentFilterKeyword]));
+
+    bubbleNodes.select("text")
+      .style("font-size", d => {
+        const r = radiusScale(d.TotalMedals);
+        return Math.min(r / 3.5, 14) + "px";
+      })
+      .text((d) => {
+        const r = radiusScale(d.TotalMedals);
+        const label = d[currentFilterKeyword];
+        const maxChars = Math.floor(r / 3.2);
+        if (r < 20) return "";
+        if (label.length > maxChars) {
+          return label.slice(0, Math.max(0, maxChars - 2)) + "...";
+        }
+        return label;
+      });
 
     const showTooltip = (event, d) => {
       setTooltipState({
@@ -185,21 +206,15 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       setTooltipState((prev) => ({ ...prev, show: false }));
     };
 
-    const bubble = bubbleGroup
-      .append("circle")
-      .attr("stroke-width", "1.5")
-      .attr("stroke", "#11111b") // Crust
-      .attr("fill", (d) => colorScale(d[currentFilterKeyword]))
-      .attr("fill-opacity", 0.8)
+    bubbleNodes.select(".bubble-circle")
       .on("mouseover", function (event, d) {
         showTooltip(event, d);
         d3.select(this)
           .transition()
           .duration(300)
-          .ease(d3.easeCubicOut)
           .attr("r", radiusScale(d.TotalMedals) + 5)
           .attr("fill-opacity", 1)
-          .attr("stroke", "#cdd6f4"); // Text
+          .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
         setTooltipState((prev) => ({
@@ -208,15 +223,14 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
           y: event.pageY
         }));
       })
-      .on("mouseout", function () {
+      .on("mouseout", function (event, d) {
         hideTooltip();
         d3.select(this)
           .transition()
           .duration(300)
-          .ease(d3.easeCubicOut)
-          .attr("r", (d) => radiusScale(d.TotalMedals))
+          .attr("r", radiusScale(d.TotalMedals))
           .attr("fill-opacity", 0.8)
-          .attr("stroke", "#11111b"); // Crust
+          .attr("stroke", "#11111b");
       })
       .on("click", (event, d) => {
         hideTooltip();
@@ -242,42 +256,12 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
           })
       );
 
-    const labels = bubbleGroup
-      .append("text")
-      .attr("class", "label unselectable")
-      .style("pointer-events", "none")
-      .style("fill", "#11111b") // Crust for contrast
-      .style("font-weight", "700")
-      .style("text-anchor", "middle")
-      .style("dominant-baseline", "central")
-      .style("font-size", d => {
-        const r = radiusScale(d.TotalMedals);
-        return Math.min(r / 3.5, 14) + "px";
-      })
-      .text((d) => {
-        const r = radiusScale(d.TotalMedals);
-        const label = d[currentFilterKeyword];
-        const maxChars = Math.floor(r / 3.2);
-        if (r < 20) return "";
-        if (label.length > maxChars) {
-          return label.slice(0, Math.max(0, maxChars - 2)) + "...";
-        }
-        return label;
-      });
-
     simulation.on("tick", () => {
-      bubble
-        .attr("cx", (d) => d.x)
-        .attr("cy", (d) => d.y)
-        .attr("r", (d) => radiusScale(d.TotalMedals));
-
-      labels
-        .attr("x", (d) => d.x)
-        .attr("y", (d) => d.y);
+      bubbleNodes.attr("transform", d => `translate(${d.x},${d.y})`);
     });
 
     return () => {
-      svg.selectAll("*").remove();
+      simulation.stop();
     };
   }, [
     advanceState,
