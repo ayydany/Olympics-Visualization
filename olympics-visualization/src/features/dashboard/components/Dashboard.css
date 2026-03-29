@@ -43,10 +43,10 @@
 }
 
 .react-resizable-handle {
-  width: 24px;
-  height: 24px;
-  bottom: 0;
-  right: 0;
+  width: 32px; /* Increased from 24px */
+  height: 32px; /* Increased from 24px */
+  bottom: 4px;  /* Added small offset */
+  right: 4px;   /* Added small offset */
   background-image: none !important;
   cursor: nwse-resize;
   z-index: 60 !important;
@@ -55,10 +55,10 @@
 .react-resizable-handle::after {
   content: "";
   position: absolute;
-  right: 6px;
-  bottom: 6px;
-  width: 10px;
-  height: 10px;
+  right: 8px; /* Increased from 6px */
+  bottom: 8px; /* Increased from 6px */
+  width: 12px; /* Slightly larger icon */
+  height: 12px; /* Slightly larger icon */
   border-right: 3px solid var(--ctp-surface2);
   border-bottom: 3px solid var(--ctp-surface2);
   border-radius: 1px;
