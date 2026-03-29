@@ -1,6 +1,17 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import * as d3 from "d3";
 import { Responsive as ResponsiveGridLayout, Layouts } from "react-grid-layout";
+import { 
+  IconButton, 
+  Menu, 
+  MenuItem, 
+  FormControlLabel, 
+  Checkbox, 
+  Box, 
+  Typography,
+  Tooltip as MuiTooltip
+} from "@mui/material";
+import { Settings as SettingsIcon } from "@mui/icons-material";
 
 import Header from "@/features/dashboard/components/Header";
 import Bubblechart from "@/features/dashboard/components/Bubblechart";
@@ -14,8 +25,8 @@ import populationCsv from "@/data/world_population_full.csv";
 import useYearStore from "@/stores/useYearStore";
 import { OlympicRow, DictionaryEntry, TooltipState } from "@/types";
 
-import "/node_modules/react-grid-layout/css/styles.css";
-import "/node_modules/react-resizable/css/styles.css";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 import "./Dashboard.css";
 
 const MainComponent: React.FC = () => {
@@ -25,7 +36,10 @@ const MainComponent: React.FC = () => {
   const [countryData, setCountyData] = useState<OlympicRow[] | null>(null);
   const [populationData, setPopulationData] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showMenu, setShowMenu] = useState(false);
+  
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+
   const [visibleCharts, setVisibleCharts] = useState({
     worldmap: true,
     bubblechart: true,
@@ -105,6 +119,13 @@ const MainComponent: React.FC = () => {
     return dictionaryData && countryData && populationData;
   }, [dictionaryData, countryData, populationData]);
 
+  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
   const toggleChart = (id: keyof typeof visibleCharts) => {
     setVisibleCharts(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -154,41 +175,70 @@ const MainComponent: React.FC = () => {
     <div className="main-container flex flex-col h-screen bg-ctp-base text-ctp-text overflow-hidden relative">
       <Header dictionaryData={dictionaryData} />
       
-      {/* Selector Menu Button - Absolute Top Right */}
-      <div className="fixed top-2 right-2 z-[2000]">
-        <button 
-          onClick={() => setShowMenu(!showMenu)}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-ctp-mantle/80 backdrop-blur-md border border-ctp-surface1 text-ctp-mauve shadow-2xl hover:bg-ctp-surface0 hover:scale-110 transition-all duration-300 group"
-          title="Toggle Visualizations"
-        >
-          <span className={`text-2xl transition-transform duration-700 ${showMenu ? 'rotate-180' : 'group-hover:rotate-90'}`}>⚙</span>
-        </button>
+      {/* MUI Settings Menu - Absolute Top Right */}
+      <Box className="fixed top-2 right-2 z-[2000]">
+        <MuiTooltip title="Configure Visualizations">
+          <IconButton 
+            onClick={handleMenuClick}
+            sx={{ 
+              backgroundColor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              '&:hover': { backgroundColor: 'action.hover' }
+            }}
+          >
+            <SettingsIcon color="primary" />
+          </IconButton>
+        </MuiTooltip>
         
-        {showMenu && (
-          <div className="absolute right-0 mt-3 w-56 bg-ctp-mantle/95 backdrop-blur-xl border border-ctp-mauve/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-ctp-subtext0 mb-1 px-1 opacity-60">Visible Charts</div>
-            {Object.entries({
-              worldmap: "World Map",
-              bubblechart: "Bubble Chart",
-              scatterplot: "Scatter Plot",
-              linechart: "Line Chart"
-            }).map(([id, label]) => (
-              <label key={id} className="flex items-center justify-between cursor-pointer group px-3 py-2 rounded-xl hover:bg-ctp-mauve/10 transition-all duration-200">
-                <span className={`text-sm font-bold tracking-tight ${visibleCharts[id as keyof typeof visibleCharts] ? 'text-ctp-text' : 'text-ctp-subtext1'}`}>{label}</span>
-                <div className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+        <Menu
+          anchorEl={anchorEl}
+          open={openMenu}
+          onClose={handleMenuClose}
+          PaperProps={{
+            sx: {
+              backgroundColor: 'rgba(24, 24, 37, 0.95)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid',
+              borderColor: 'primary.main',
+              borderRadius: '16px',
+              mt: 1.5,
+              minWidth: 220,
+              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+            }
+          }}
+        >
+          <Box sx={{ px: 2, py: 1 }}>
+            <Typography variant="overline" sx={{ fontWeight: 900, opacity: 0.6, letterSpacing: 2 }}>
+              Visible Charts
+            </Typography>
+          </Box>
+          {Object.entries({
+            worldmap: "World Map",
+            bubblechart: "Bubble Chart",
+            scatterplot: "Scatter Plot",
+            linechart: "Line Chart"
+          }).map(([id, label]) => (
+            <MenuItem key={id} sx={{ py: 0.5 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox 
                     checked={visibleCharts[id as keyof typeof visibleCharts]} 
                     onChange={() => toggleChart(id as keyof typeof visibleCharts)}
-                    className="sr-only peer"
+                    size="small"
                   />
-                  <div className="w-9 h-5 bg-ctp-surface1 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ctp-mauve"></div>
-                </div>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
+                }
+                label={
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {label}
+                  </Typography>
+                }
+                sx={{ width: '100%', mr: 0 }}
+              />
+            </MenuItem>
+          ))}
+        </Menu>
+      </Box>
 
       <div ref={gridContainerRef} className="flex-grow overflow-y-auto bg-ctp-crust p-2 relative">
         {isLoading && <div className="p-3 text-ctp-subtext0 font-medium text-center mt-10">Loading dataset...</div>}
