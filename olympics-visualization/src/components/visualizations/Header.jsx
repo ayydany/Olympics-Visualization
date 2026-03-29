@@ -48,11 +48,11 @@ const Header = ({ dictionaryData }) => {
       <h1 className="text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-ctp-text whitespace-nowrap overflow-hidden text-ellipsis px-0">
         <span className="text-ctp-mauve">{countriesText}</span>
         <span className="text-ctp-subtext1"> on </span>
-        <span className="text-ctp-peach">{filterLabel}</span>
+        <span className="text-ctp-mauve">{filterLabel}</span>
         <span className="text-ctp-subtext1"> from </span>
-        <span className="text-ctp-yellow">{yearFilter.start}</span>
+        <span className="text-ctp-mauve">{yearFilter.start}</span>
         <span className="text-ctp-subtext1"> to </span>
-        <span className="text-ctp-yellow">{yearFilter.end}</span>
+        <span className="text-ctp-mauve">{yearFilter.end}</span>
       </h1>
     );
   }, [countrySelection, dictionaryMap, yearFilter, currentState, sportFilter, disciplineFilter, eventFilter]);
