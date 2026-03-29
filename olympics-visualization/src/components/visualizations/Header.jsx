@@ -7,10 +7,15 @@ const Header = ({ dictionaryData }) => {
   const svgRef = useRef();
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  
   const yearFilter = useYearStore((state) => state.yearFilter);
   const setYearFilter = useYearStore((state) => state.setYearFilter);
   const years = useYearStore((state) => state.years);
   const countrySelection = useYearStore((state) => state.countrySelection);
+  const currentState = useYearStore((state) => state.currentState);
+  const sportFilter = useYearStore((state) => state.sportFilter);
+  const disciplineFilter = useYearStore((state) => state.disciplineFilter);
+  const eventFilter = useYearStore((state) => state.eventFilter);
 
   const dictionaryMap = useMemo(() => {
     if (!dictionaryData) return {};
@@ -29,20 +34,28 @@ const Header = ({ dictionaryData }) => {
     } else if (names.length === 1) {
       countriesText = names[0];
     } else {
-      const last = names.pop();
-      countriesText = `${names.join(", ")} and ${last}`;
+      const namesCopy = [...names];
+      const last = namesCopy.pop();
+      countriesText = `${namesCopy.join(", ")} and ${last}`;
     }
 
+    let filterLabel = "All Sports";
+    if (currentState === 1) filterLabel = sportFilter;
+    if (currentState === 2) filterLabel = disciplineFilter;
+    if (currentState === 3) filterLabel = eventFilter;
+
     return (
-      <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter text-ctp-text whitespace-nowrap overflow-hidden text-ellipsis">
+      <h1 className="text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-ctp-text whitespace-nowrap overflow-hidden text-ellipsis px-2">
         <span className="text-ctp-mauve">{countriesText}</span>
+        <span className="text-ctp-subtext1"> on </span>
+        <span className="text-ctp-peach">{filterLabel}</span>
         <span className="text-ctp-subtext1"> from </span>
         <span className="text-ctp-yellow">{yearFilter.start}</span>
         <span className="text-ctp-subtext1"> to </span>
         <span className="text-ctp-yellow">{yearFilter.end}</span>
       </h1>
     );
-  }, [countrySelection, dictionaryMap, yearFilter]);
+  }, [countrySelection, dictionaryMap, yearFilter, currentState, sportFilter, disciplineFilter, eventFilter]);
 
   // Handle ResizeObserver for the slider container
   useEffect(() => {
@@ -65,13 +78,13 @@ const Header = ({ dictionaryData }) => {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const margin = { top: 15, right: 30, bottom: 15, left: 30 };
+    const margin = { top: 10, right: 30, bottom: 10, left: 30 };
     const width = dimensions.width;
     
     const slider = svg
       .append("g")
       .attr("class", "slider")
-      .attr("transform", `translate(${margin.left}, 15)`);
+      .attr("transform", `translate(${margin.left}, 10)`);
 
     const sliderWidth = width - margin.left - margin.right;
 
@@ -101,13 +114,13 @@ const Header = ({ dictionaryData }) => {
     const handle1 = slider
       .append("circle")
       .attr("class", "handle")
-      .attr("r", 8)
+      .attr("r", 7)
       .attr("cx", xScale(startIdx));
 
     const handle2 = slider
       .append("circle")
       .attr("class", "handle")
-      .attr("r", 8)
+      .attr("r", 7)
       .attr("cx", xScale(endIdx));
 
     let selectedHandle = null;
@@ -156,7 +169,7 @@ const Header = ({ dictionaryData }) => {
     slider
       .append("g")
       .attr("class", "ticks unselectable")
-      .attr("transform", "translate(0, 22)")
+      .attr("transform", "translate(0, 20)")
       .selectAll("text")
       .data(years.filter((_, i) => i % tickStep === 0))
       .enter()
@@ -168,11 +181,11 @@ const Header = ({ dictionaryData }) => {
   }, [dimensions, years, setYearFilter, yearFilter.start, yearFilter.end]);
 
   return (
-    <header className="w-full bg-ctp-mantle border-b border-ctp-surface0 shadow-2xl z-50 px-8 py-4 flex flex-col gap-2">
-      <div className="flex items-center justify-start">
+    <header className="w-full bg-ctp-mantle border-b border-ctp-surface0 shadow-lg z-50 px-12 py-2 flex flex-col gap-1">
+      <div className="flex items-center justify-start overflow-hidden">
         {labelText}
       </div>
-      <div ref={containerRef} className="w-full h-[50px]">
+      <div ref={containerRef} className="w-full h-[40px]">
         <svg ref={svgRef} className="w-full h-full overflow-visible" />
       </div>
     </header>
