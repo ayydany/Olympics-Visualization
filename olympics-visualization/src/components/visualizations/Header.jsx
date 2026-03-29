@@ -1,10 +1,12 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
 import * as d3 from "d3";
 import useYearStore from "../../store/useYearStore";
 import "./Header.css";
 
 const Header = ({ dictionaryData }) => {
   const svgRef = useRef();
+  const containerRef = useRef();
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const yearFilter = useYearStore((state) => state.yearFilter);
   const setYearFilter = useYearStore((state) => state.setYearFilter);
   const years = useYearStore((state) => state.years);
@@ -35,7 +37,13 @@ const Header = ({ dictionaryData }) => {
     if (currentState === 2) filterLabel = disciplineFilter;
     if (currentState === 3) filterLabel = eventFilter;
 
-    return `${countriesText} on ${filterLabel}`;
+    return (
+      <>
+        <span className="text-ctp-mauve">{countriesText}</span>
+        <span className="text-ctp-subtext1"> on </span>
+        <span className="text-ctp-yellow">{filterLabel}</span>
+      </>
+    );
   }, [
     countrySelection,
     currentState,
@@ -45,141 +53,173 @@ const Header = ({ dictionaryData }) => {
     sportFilter,
   ]);
 
+  // Handle ResizeObserver for the slider container
   useEffect(() => {
-    var rect = svgRef.current.getBoundingClientRect();
+    const container = containerRef.current;
+    if (!container) return;
 
-    // array containing the years in which summer olympics occurred
-    const margin = { top: 10, right: 50, bottom: 10, left: 30 },
-      width = rect.width,
-      height = rect.height;
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) return;
+      const { width, height } = entries[0].contentRect;
+      setDimensions({ width, height });
+    });
 
-    const slider = d3
-      .select(svgRef.current)
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (dimensions.width === 0) return;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    const margin = { top: 15, right: 30, bottom: 15, left: 30 };
+    const width = dimensions.width;
+    
+    const slider = svg
       .append("g")
       .attr("class", "slider")
-      .attr("transform", "translate(15,15)");
+      .attr("transform", `translate(${margin.left}, 15)`);
+
+    const sliderWidth = width - margin.left - margin.right;
 
     const xScale = d3
       .scaleLinear()
       .domain([0, years.length - 1])
-      .range([0, width - margin.left])
+      .range([0, sliderWidth])
       .clamp(true);
 
-    let selectedHandle = null;
+    // Initial handle positions based on store
+    const startIdx = years.indexOf(yearFilter.start);
+    const endIdx = years.indexOf(yearFilter.end);
 
-    // make an SVG Container
+    // Track
     slider
       .append("line")
       .attr("class", "track")
       .attr("x1", xScale.range()[0])
-      .attr("x2", xScale.range()[1])
-      .select(function () {
-        return this.parentNode.appendChild(this.cloneNode(true));
-      })
+      .attr("x2", xScale.range()[1]);
+
+    const trackInset = slider
+      .append("line")
       .attr("class", "track-inset")
-      .select(function () {
-        return this.parentNode.appendChild(this.cloneNode(true));
-      })
+      .attr("x1", xScale(startIdx))
+      .attr("x2", xScale(endIdx));
+
+    const trackOverlay = slider
+      .append("line")
       .attr("class", "track-overlay")
+      .attr("x1", xScale.range()[0])
+      .attr("x2", xScale.range()[1])
       .call(
         d3
           .drag()
-          .on("drag", (event, d) => {
+          .on("drag", (event) => {
             let target = round(xScale.invert(event.x));
             if (selectedHandle === null) {
-              Math.abs(target - xScale.invert(handle1.attr("cx"))) <
-              Math.abs(target - xScale.invert(handle2.attr("cx")))
-                ? (selectedHandle = handle1)
-                : (selectedHandle = handle2);
+              const h1Dist = Math.abs(target - xScale.invert(handle1.attr("cx")));
+              const h2Dist = Math.abs(target - xScale.invert(handle2.attr("cx")));
+              selectedHandle = h1Dist < h2Dist ? handle1 : handle2;
             }
             moveHandle(target);
           })
-          .on("end", (d) => {
-            // reset radius of selected handle
-            handle1.attr("r", 8);
-            handle2.attr("r", 8);
+          .on("end", () => {
+            handle1.attr("r", 8).classed("active", false);
+            handle2.attr("r", 8).classed("active", false);
 
-            // if both handles are the same year make them bigger
             if (handle1.attr("cx") === handle2.attr("cx")) {
-              handle1.attr("r", 12);
-              handle2.attr("r", 12);
+              handle1.attr("r", 10);
+              handle2.attr("r", 10);
             }
 
             selectedHandle = null;
 
-            // update global time variable
-            const firstIndex = round(xScale.invert(handle1.attr("cx")));
-            const secondIndex = round(xScale.invert(handle2.attr("cx")));
-            const startYear =
-              years[Math.min(Math.round(firstIndex), Math.round(secondIndex))];
-            const endYear =
-              years[Math.max(Math.round(firstIndex), Math.round(secondIndex))];
-            setYearFilter({
-              start: startYear,
-              end: endYear,
-            });
+            const idx1 = round(xScale.invert(handle1.attr("cx")));
+            const idx2 = round(xScale.invert(handle2.attr("cx")));
+            const startYear = years[Math.min(idx1, idx2)];
+            const endYear = years[Math.max(idx1, idx2)];
+            
+            setYearFilter({ start: startYear, end: endYear });
           })
       );
 
+    // Ticks - filter to avoid overlap
+    const tickStep = dimensions.width < 600 ? 4 : dimensions.width < 900 ? 2 : 1;
+    
     slider
-      .insert("g", ".track-overlay")
+      .append("g")
       .attr("class", "ticks unselectable")
-      .attr("transform", "translate(0," + 20 + ")")
+      .attr("transform", "translate(0, 22)")
       .selectAll("text")
-      .data(xScale.ticks(years.length - 1))
+      .data(years.filter((_, i) => i % tickStep === 0))
       .enter()
       .append("text")
-      .attr("x", xScale)
+      .attr("x", (d) => xScale(years.indexOf(d)))
       .attr("text-anchor", "middle")
-      .text((d) => years[d]);
+      .text((d) => d);
 
     const handle1 = slider
-      .insert("circle", ".track-overlay")
+      .append("circle")
       .attr("class", "handle")
       .attr("r", 8)
-      .attr("cx", xScale(0));
+      .attr("cx", xScale(startIdx));
 
     const handle2 = slider
-      .insert("circle", ".track-overlay")
+      .append("circle")
       .attr("class", "handle")
       .attr("r", 8)
-      .attr("cx", xScale(years.length - 1));
+      .attr("cx", xScale(endIdx));
+
+    let selectedHandle = null;
 
     function moveHandle(target) {
-      selectedHandle.attr("r", 10).attr("cx", xScale(target));
+      selectedHandle.attr("r", 10).attr("cx", xScale(target)).classed("active", true);
+      
+      // Update inset track
+      const idx1 = round(xScale.invert(handle1.attr("cx")));
+      const idx2 = round(xScale.invert(handle2.attr("cx")));
+      trackInset.attr("x1", xScale(Math.min(idx1, idx2)))
+                .attr("x2", xScale(Math.max(idx1, idx2)));
     }
 
-    function round(xScale) {
-      xScale = xScale % 1 >= 0.5 ? Math.ceil(xScale) : Math.floor(xScale);
-      return xScale;
+    function round(val) {
+      return Math.round(val);
     }
 
-    // Cleanup function
-    return () => {
-      // Remove appended HTML when component unmounts
-      if (svgRef.current) {
-        svgRef.current.innerHTML = "";
-      }
-    };
-  }, []);
+  }, [dimensions, years, setYearFilter, yearFilter.start, yearFilter.end]);
 
   return (
-    <div id="header" className="w-full flex flex-col md:flex-row items-center md:items-end justify-between px-6 py-4 bg-ctp-mantle border-b border-ctp-surface0 shadow-lg">
-      <div className="flex flex-col items-start w-full md:w-1/2">
-        <span id="statelabel" className="text-2xl font-extrabold tracking-tight text-ctp-text leading-tight unselectable mb-1">
-          {labelText}
-        </span>
-        <span className="text-sm font-medium text-ctp-subtext0 unselectable">
-          Summer Olympics Data Visualization • {yearFilter.start} - {yearFilter.end}
-        </span>
+    <header className="w-full bg-ctp-mantle border-b border-ctp-surface0 shadow-2xl z-50">
+      <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center lg:items-center justify-between px-8 py-6 gap-6">
+        
+        {/* Left: Title Section */}
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left min-w-[40%]">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-ctp-text leading-none mb-2 drop-shadow-sm">
+            {labelText}
+          </h1>
+          <p className="text-base md:text-lg font-bold text-ctp-subtext0 uppercase tracking-widest opacity-80">
+            Summer Olympics Visualization <span className="mx-2 text-ctp-surface2">•</span> {yearFilter.start} - {yearFilter.end}
+          </p>
+        </div>
+
+        {/* Right: Slider Section */}
+        <div className="flex flex-col items-center w-full lg:w-1/2 max-w-[800px]">
+          <div ref={containerRef} className="w-full h-[60px] flex items-center justify-center">
+            <svg ref={svgRef} className="w-full h-full overflow-visible" />
+          </div>
+          <div className="flex justify-between w-full px-8 -mt-2">
+             <span className="text-[10px] uppercase tracking-[0.3em] font-black text-ctp-surface2 unselectable">
+               Drag to filter years
+             </span>
+             <span className="text-[10px] uppercase tracking-[0.3em] font-black text-ctp-surface2 unselectable">
+               Olympics Dashboard
+             </span>
+          </div>
+        </div>
+
       </div>
-      <div className="flex flex-col items-center w-full md:w-1/2 mt-4 md:mt-0">
-        <svg id="timeslider" ref={svgRef} className="w-full max-w-[600px] h-[40px]" />
-        <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-ctp-surface2 mt-1 unselectable">
-          Olympics Visualization - Made with ❤️
-        </span>
-      </div>
-    </div>
+    </header>
   );
 };
 
