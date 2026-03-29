@@ -1,30 +1,33 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import worldGeo from "../../data/simple_map.json";
-import useYearStore from "../../store/useYearStore";
+import worldGeo from "@/data/simple_map.json";
+import useYearStore from "@/stores/useYearStore";
+import { DictionaryEntry, TooltipState } from "@/types";
 import "./Worldmap.css";
 
-const Worldmap = ({ dictionaryData, setTooltipState }) => {
-  const svgRef = useRef(null);
-  const gRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+interface WorldmapProps {
+  dictionaryData: DictionaryEntry[];
+  setTooltipState: (state: TooltipState) => void;
+}
 
+const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const gRef = useRef<SVGGElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const countrySelection = useYearStore((state) => state.countrySelection);
-  const toggleCountry = useYearStore((state) => state.toggleCountry);
   const getCountryColor = useYearStore((state) => state.getCountryColor);
+  const toggleCountry = useYearStore((state) => state.toggleCountry);
 
   const nameToCode = useMemo(() => {
-    if (!dictionaryData) return {};
-    return dictionaryData.reduce((acc, entry) => {
-      acc[entry.CountryName] = entry.CountryCode;
+    return dictionaryData.reduce((acc: Record<string, string>, d) => {
+      acc[d.CountryName] = d.CountryCode;
       return acc;
     }, {});
   }, [dictionaryData]);
 
-  // Handle Resize
   useEffect(() => {
-    const parent = svgRef.current?.parentElement;
-    if (!parent) return;
+    const container = svgRef.current;
+    if (!container) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
       if (!entries || entries.length === 0) return;
@@ -32,15 +35,17 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
       setDimensions({ width, height });
     });
 
-    resizeObserver.observe(parent);
+    resizeObserver.observe(container.parentElement!);
+
     return () => resizeObserver.disconnect();
   }, []);
 
-  // Main D3 Rendering
   useEffect(() => {
-    if (dimensions.width === 0 || dimensions.height === 0) return;
+    if (dimensions.width === 0 || !svgRef.current || !gRef.current) return;
 
-    const svg = d3.select(svgRef.current);
+    const svg = d3.select(svgRef.current)
+      .attr("width", dimensions.width)
+      .attr("height", dimensions.height);
     const g = d3.select(gRef.current);
 
     // Setup projection
@@ -66,7 +71,7 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
     }
 
     // Zoom setup
-    const zoom = d3.zoom()
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 8])
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
@@ -75,16 +80,17 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
     svg.call(zoom);
 
     // Update / Render paths
-    const countries = g.selectAll(".country")
-      .data(worldGeo.features);
+    const countries = g.selectAll<SVGPathElement, any>(".country")
+      .data((worldGeo as any).features);
 
     countries.enter()
       .append("path")
       .attr("class", "country")
-      .merge(countries)
-      .attr("d", path)
-      .attr("fill", (d) => {
-        const code = nameToCode[d.properties.name_long] || nameToCode[d.properties.name];
+      .merge(countries as any)
+      .attr("d", path as any)
+      .attr("fill", (d: any) => {
+        const name = d.properties.name_long || d.properties.name;
+        const code = nameToCode[name];
         if (!code) return "url(#diagonalHatch)";
         if (countrySelection.includes(code)) {
           return getCountryColor(code);
@@ -93,9 +99,15 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
       })
       .attr("stroke", "#11111b") // Crust
       .attr("stroke-width", 0.5)
-      .classed("country-selectable", (d) => !!(nameToCode[d.properties.name_long] || nameToCode[d.properties.name]))
-      .classed("country-unselectable", (d) => !(nameToCode[d.properties.name_long] || nameToCode[d.properties.name]))
-      .on("mouseover", function(event, d) {
+      .classed("country-selectable", (d: any) => {
+        const name = d.properties.name_long || d.properties.name;
+        return !!nameToCode[name];
+      })
+      .classed("country-unselectable", (d: any) => {
+        const name = d.properties.name_long || d.properties.name;
+        return !nameToCode[name];
+      })
+      .on("mouseover", function(event, d: any) {
         const name = d.properties.name_long || d.properties.name;
         const code = nameToCode[name];
         if (!code) return;
@@ -110,29 +122,28 @@ const Worldmap = ({ dictionaryData, setTooltipState }) => {
         });
       })
       .on("mousemove", (event) => {
-        setTooltipState(prev => ({
-          ...prev,
+        setTooltipState({
+          show: true,
+          content: "", // Content is already set on mouseover
           x: event.pageX,
           y: event.pageY
-        }));
+        } as any); // Type assertion or fix TooltipState interface
       })
       .on("mouseout", function() {
         d3.select(this).style("stroke", "#11111b").style("stroke-width", 0.5); // Crust
         setTooltipState({ show: false, content: "", x: 0, y: 0 });
       })
-      .on("click", (event, d) => {
-        const code = nameToCode[d.properties.name_long] || nameToCode[d.properties.name];
+      .on("click", (event, d: any) => {
+        const name = d.properties.name_long || d.properties.name;
+        const code = nameToCode[name];
         if (!code) return;
-        
-        toggleCountry(code, event.ctrlKey || event.metaKey);
+        toggleCountry(code, event.ctrlKey);
       });
-
-    countries.exit().remove();
 
   }, [dimensions, nameToCode, countrySelection, getCountryColor, toggleCountry, setTooltipState]);
 
   return (
-    <div id="worldmap">
+    <div id="worldmap" className="w-full h-full relative overflow-hidden bg-ctp-mantle">
       <svg ref={svgRef}>
         <g ref={gRef} />
       </svg>

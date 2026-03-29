@@ -1,28 +1,29 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import * as d3 from "d3";
-import { Responsive as ResponsiveGridLayout } from "react-grid-layout";
+import { Responsive as ResponsiveGridLayout, Layouts } from "react-grid-layout";
 
-import Header from "../visualizations/Header";
-import Bubblechart from "../visualizations/Bubblechart";
-import Linechart from "../visualizations/Linechart";
-import Scatterplot from "../visualizations/Scatterplot";
-import Worldmap from "../visualizations/Worldmap";
-import Tooltip from "../common/Tooltip";
-import dictionaryDataCsv from "../../data/dictionary.csv";
-import countryDataCsv from "../../data/summer_year_country_event.csv";
-import populationCsv from "../../data/world_population_full.csv";
-import useYearStore from "../../store/useYearStore";
+import Header from "./Header";
+import Bubblechart from "./Bubblechart";
+import Linechart from "./Linechart";
+import Scatterplot from "./Scatterplot";
+import Worldmap from "./Worldmap";
+import Tooltip from "@/components/Tooltip";
+import dictionaryDataCsv from "@/data/dictionary.csv";
+import countryDataCsv from "@/data/summer_year_country_event.csv";
+import populationCsv from "@/data/world_population_full.csv";
+import useYearStore from "@/stores/useYearStore";
+import { OlympicRow, DictionaryEntry, TooltipState } from "@/types";
 
 import "/node_modules/react-grid-layout/css/styles.css";
 import "/node_modules/react-resizable/css/styles.css";
-import "./MainComponent.css";
+import "./Dashboard.css";
 
-const MainComponent = () => {
-  const gridContainerRef = useRef();
+const MainComponent: React.FC = () => {
+  const gridContainerRef = useRef<HTMLDivElement>(null);
   const [gridWidth, setGridWidth] = useState(1200);
-  const [dictionaryData, setDictionaryData] = useState(null);
-  const [countryData, setCountyData] = useState(null);
-  const [populationData, setPopulationData] = useState(null);
+  const [dictionaryData, setDictionaryData] = useState<DictionaryEntry[] | null>(null);
+  const [countryData, setCountyData] = useState<OlympicRow[] | null>(null);
+  const [populationData, setPopulationData] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [visibleCharts, setVisibleCharts] = useState({
@@ -32,14 +33,14 @@ const MainComponent = () => {
     linechart: true,
   });
 
-  const [tooltipState, setTooltipState] = useState({
+  const [tooltipState, setTooltipState] = useState<TooltipState>({
     show: false,
     content: "",
     x: 0,
     y: 0,
   });
 
-  const updateTooltipState = React.useCallback((state) => {
+  const updateTooltipState = React.useCallback((state: TooltipState) => {
     setTooltipState(state);
   }, []);
 
@@ -68,7 +69,7 @@ const MainComponent = () => {
       d3.csv(populationCsv),
     ])
       .then(([dictionary, country, population]) => {
-        const parsedCountry = country.map((d) => ({
+        const parsedCountry: OlympicRow[] = (country as any[]).map((d) => ({
           ...d,
           Year: +d.Year,
           GoldCount: +d.GoldCount,
@@ -77,7 +78,7 @@ const MainComponent = () => {
           TotalMedals: +d.GoldCount + +d.SilverCount + +d.BronzeCount,
         }));
 
-        setDictionaryData(dictionary);
+        setDictionaryData(dictionary as unknown as DictionaryEntry[]);
         setCountyData(parsedCountry);
         setPopulationData(population);
         setIsLoading(false);
@@ -104,11 +105,11 @@ const MainComponent = () => {
     return dictionaryData && countryData && populationData;
   }, [dictionaryData, countryData, populationData]);
 
-  const toggleChart = (id) => {
+  const toggleChart = (id: keyof typeof visibleCharts) => {
     setVisibleCharts(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const initialLayouts = {
+  const initialLayouts: Layouts = {
     lg: [
       { i: "worldmap", x: 0, y: 0, w: 6, h: 15 },
       { i: "bubblechart", x: 6, y: 0, w: 6, h: 15 },
@@ -142,9 +143,9 @@ const MainComponent = () => {
   };
 
   const filteredLayouts = useMemo(() => {
-    const newLayouts = {};
+    const newLayouts: Layouts = {};
     Object.keys(initialLayouts).forEach(bp => {
-      newLayouts[bp] = initialLayouts[bp].filter(item => visibleCharts[item.i]);
+      newLayouts[bp] = initialLayouts[bp].filter(item => visibleCharts[item.i as keyof typeof visibleCharts]);
     });
     return newLayouts;
   }, [visibleCharts]);
@@ -173,12 +174,12 @@ const MainComponent = () => {
               linechart: "Line Chart"
             }).map(([id, label]) => (
               <label key={id} className="flex items-center justify-between cursor-pointer group px-3 py-2 rounded-xl hover:bg-ctp-mauve/10 transition-all duration-200">
-                <span className={`text-sm font-bold tracking-tight ${visibleCharts[id] ? 'text-ctp-text' : 'text-ctp-subtext1'}`}>{label}</span>
+                <span className={`text-sm font-bold tracking-tight ${visibleCharts[id as keyof typeof visibleCharts] ? 'text-ctp-text' : 'text-ctp-subtext1'}`}>{label}</span>
                 <div className="relative inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
-                    checked={visibleCharts[id]} 
-                    onChange={() => toggleChart(id)}
+                    checked={visibleCharts[id as keyof typeof visibleCharts]} 
+                    onChange={() => toggleChart(id as keyof typeof visibleCharts)}
                     className="sr-only peer"
                   />
                   <div className="w-9 h-5 bg-ctp-surface1 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ctp-mauve"></div>
@@ -207,7 +208,7 @@ const MainComponent = () => {
                 <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
                   <span className="leading-none pointer-events-none">⊹</span>
                 </div>
-                <Worldmap dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
+                <Worldmap dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.bubblechart && (
@@ -215,7 +216,7 @@ const MainComponent = () => {
                 <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
                   <span className="leading-none pointer-events-none">⊹</span>
                 </div>
-                <Bubblechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
+                <Bubblechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.scatterplot && (
@@ -223,7 +224,7 @@ const MainComponent = () => {
                 <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
                   <span className="leading-none pointer-events-none">⊹</span>
                 </div>
-                <Scatterplot countryData={countryData} populationData={populationData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
+                <Scatterplot countryData={countryData!} populationData={populationData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.linechart && (
@@ -231,7 +232,7 @@ const MainComponent = () => {
                 <div className="drag-handle absolute top-3 right-3 w-8 h-8 bg-ctp-surface0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-move z-[100] flex items-center justify-center text-xl text-ctp-teal shadow-xl border border-ctp-teal/30" style={{ top: '12px', right: '12px', left: 'auto' }}>
                   <span className="leading-none pointer-events-none">⊹</span>
                 </div>
-                <Linechart countryData={countryData} dictionaryData={dictionaryData} setTooltipState={updateTooltipState} />
+                <Linechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
           </ResponsiveGridLayout>

@@ -1,17 +1,24 @@
-import React, { useRef, useEffect, useState, useMemo } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import "./Bubblechart.css";
 import * as d3 from "d3";
-import useYearStore from "../../store/useYearStore";
+import useYearStore from "@/stores/useYearStore";
+import { DictionaryEntry, OlympicRow, TooltipState } from "@/types";
 
-const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
-  const svgRef = useRef();
+interface BubblechartProps {
+  dictionaryData: DictionaryEntry[];
+  countryData: OlympicRow[];
+  setTooltipState: (state: TooltipState) => void;
+}
+
+const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, setTooltipState }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const yearFilter = useYearStore((state) => state.yearFilter);
   const countrySelection = useYearStore((state) => state.countrySelection);
   const currentState = useYearStore((state) => state.currentState);
   const currentFilterKeyword = useYearStore(
     (state) => state.currentFilterKeyword
-  );
+  ) as keyof OlympicRow;
   const sportFilter = useYearStore((state) => state.sportFilter);
   const disciplineFilter = useYearStore((state) => state.disciplineFilter);
   const eventFilter = useYearStore((state) => state.eventFilter);
@@ -29,13 +36,13 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       setDimensions({ width, height });
     });
 
-    resizeObserver.observe(container.parentElement);
+    resizeObserver.observe(container.parentElement!);
 
     return () => resizeObserver.disconnect();
   }, []);
 
   useEffect(() => {
-    if (!dictionaryData || !countryData || dimensions.width === 0) {
+    if (!dictionaryData || !countryData || dimensions.width === 0 || !svgRef.current) {
       return;
     }
 
@@ -78,15 +85,15 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
             SilverCount: 0,
             BronzeCount: 0,
             TotalMedals: 0,
-            Country: null,
-            Sport: null,
-            Discipline: null,
-            Event: null,
+            Country: "" as string | null,
+            Sport: "" as string | null,
+            Discipline: "" as string | null,
+            Event: "" as string | null,
           }
         );
         return totals;
       },
-      (d) => d[currentFilterKeyword]
+      (d) => d[currentFilterKeyword] as string
     );
 
     const processedData = Array.from(processedMap, ([key, value]) => ({
@@ -96,27 +103,17 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
 
     const radiusScale = d3
       .scaleSqrt()
-      .domain([1, d3.max(processedData, (d) => d.TotalMedals || 1)])
+      .domain([1, d3.max(processedData, (d) => d.TotalMedals || 1)!])
       .range([16, 75 - processedData.length / 2]);
 
     // Catppuccin Accents
     const catppuccinAccents = [
-      "#cba6f7", // mauve
-      "#89b4fa", // blue
-      "#a6e3a1", // green
-      "#f9e2af", // yellow
-      "#fab387", // peach
-      "#f38ba8", // red
-      "#f5c2e7", // pink
-      "#94e2d5", // teal
-      "#89dceb", // sky
-      "#74c7ec", // sapphire
-      "#b4befe", // lavender
-      "#f2cdcd", // flamingo
+      "#cba6f7", "#89b4fa", "#a6e3a1", "#f9e2af", "#fab387", "#f38ba8", 
+      "#f5c2e7", "#94e2d5", "#89dceb", "#74c7ec", "#b4befe", "#f2cdcd",
     ];
 
-    const colorScale = d3.scaleOrdinal()
-      .domain(processedData.map((d) => d[currentFilterKeyword]))
+    const colorScale = d3.scaleOrdinal<string>()
+      .domain(processedData.map((d) => d[currentFilterKeyword] as string))
       .range(catppuccinAccents);
 
     const svg = d3.select(svgRef.current)
@@ -124,7 +121,7 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       .attr("height", height);
 
     // Persistent layers
-    let gBubbles = svg.select(".bubbles-g");
+    let gBubbles = svg.select<SVGGElement>(".bubbles-g");
     if (gBubbles.empty()) {
       gBubbles = svg.append("g").attr("class", "bubbles-g");
     }
@@ -135,15 +132,15 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
     }
 
     const simulation = d3
-      .forceSimulation(processedData)
+      .forceSimulation(processedData as any)
       .force("x", d3.forceX(width / 2).strength(0.08))
       .force("y", d3.forceY(height / 2).strength(0.08))
       .force("charge", d3.forceManyBody().strength(-20))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collide", d3.forceCollide().strength(0.7).radius((d) => radiusScale(d.TotalMedals) + 3));
+      .force("collide", d3.forceCollide().strength(0.7).radius((d: any) => radiusScale(d.TotalMedals) + 3));
 
-    const bubbleNodes = gBubbles.selectAll(".bubble-g")
-      .data(processedData, d => d[currentFilterKeyword])
+    const bubbleNodes = gBubbles.selectAll<SVGGElement, any>(".bubble-g")
+      .data(processedData, d => d[currentFilterKeyword] as string)
       .join(
         enter => {
           const g = enter.append("g").attr("class", "bubble-g");
@@ -164,19 +161,19 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
         }
       );
 
-    bubbleNodes.select(".bubble-circle")
+    bubbleNodes.select<SVGCircleElement>(".bubble-circle")
       .transition().duration(750)
       .attr("r", d => radiusScale(d.TotalMedals))
-      .attr("fill", d => colorScale(d[currentFilterKeyword]));
+      .attr("fill", d => colorScale(d[currentFilterKeyword] as string));
 
-    bubbleNodes.select("text")
+    bubbleNodes.select<SVGTextElement>("text")
       .style("font-size", d => {
         const r = radiusScale(d.TotalMedals);
         return Math.min(r / 3.5, 14) + "px";
       })
       .text((d) => {
         const r = radiusScale(d.TotalMedals);
-        const label = d[currentFilterKeyword];
+        const label = d[currentFilterKeyword] as string;
         const maxChars = Math.floor(r / 3.2);
         if (r < 20) return "";
         if (label.length > maxChars) {
@@ -185,7 +182,7 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
         return label;
       });
 
-    const showTooltip = (event, d) => {
+    const showTooltip = (event: any, d: any) => {
       setTooltipState({
         show: true,
         x: event.pageX,
@@ -203,7 +200,7 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
     };
 
     const hideTooltip = () => {
-      setTooltipState((prev) => ({ ...prev, show: false }));
+      setTooltipState({ show: false, content: "", x: 0, y: 0 });
     };
 
     bubbleNodes.select(".bubble-circle")
@@ -217,11 +214,12 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
           .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
-        setTooltipState((prev) => ({
-          ...prev,
+        setTooltipState({
+          show: true,
+          content: "", // already set
           x: event.pageX,
           y: event.pageY
-        }));
+        } as any);
       })
       .on("mouseout", function (event, d) {
         hideTooltip();
@@ -234,12 +232,12 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
       })
       .on("click", (event, d) => {
         hideTooltip();
-        setSelectedNode(d);
+        setSelectedNode(d as unknown as OlympicRow);
         advanceState(1);
       })
       .call(
         d3
-          .drag()
+          .drag<SVGCircleElement, any>()
           .on("start", (event, d) => {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
@@ -253,7 +251,7 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
-          })
+          }) as any
       );
 
     simulation.on("tick", () => {
@@ -280,12 +278,12 @@ const Bubblechart = ({ dictionaryData, countryData, setTooltipState }) => {
   ]);
 
   return (
-    <div id="bubblechart">
+    <div id="bubblechart" className="w-full h-full relative">
       <div
         id="back-icon-container"
         className={currentState > 0 ? "visible" : "hidden"}
         onClick={() => {
-          setTooltipState((prev) => ({ ...prev, show: false }));
+          setTooltipState({ show: false, content: "", x: 0, y: 0 });
           advanceState(-1);
         }}
         role="button"

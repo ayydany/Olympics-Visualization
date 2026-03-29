@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { CountryCode, YearFilter, OlympicRow } from "@/types";
 
 const years = [
   1896, 1900, 1904, 1908, 1912, 1920, 1924, 1928, 1932, 1936, 1948, 1952, 1956,
@@ -8,7 +9,26 @@ const years = [
 
 const countryColors = ["#cba6f7", "#f9e2af", "#a6e3a1", "#89b4fa"];
 
-const useYearStore = create((set, get) => ({
+interface YearState {
+  years: number[];
+  yearFilter: YearFilter;
+  countrySelection: CountryCode[];
+  selectedNode: OlympicRow | null;
+  currentState: number;
+  sportFilter: string;
+  disciplineFilter: string;
+  eventFilter: string;
+  currentFilterKeyword: string;
+  setYearFilter: (range: YearFilter) => void;
+  setDefaultCountries: (codes: CountryCode[]) => void;
+  toggleCountry: (code: CountryCode, isCtrlKey?: boolean) => void;
+  setSelectedNode: (node: OlympicRow | null) => void;
+  advanceState: (direction: number) => void;
+  resetState: () => void;
+  getCountryColor: (code: CountryCode) => string;
+}
+
+const useYearStore = create<YearState>((set, get) => ({
   years,
   yearFilter: {
     start: years[0],

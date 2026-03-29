@@ -1,10 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import useYearStore from "../../store/useYearStore";
+import useYearStore from "@/stores/useYearStore";
+import { OlympicRow, DictionaryEntry, TooltipState } from "@/types";
 import "./Scatterplot.css";
 
-const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipState }) => {
-  const svgRef = useRef();
+interface ScatterplotProps {
+  countryData: OlympicRow[];
+  populationData: any[];
+  dictionaryData: DictionaryEntry[];
+  setTooltipState: (state: TooltipState) => void;
+}
+
+const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, dictionaryData, setTooltipState }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const yearFilter = useYearStore((state) => state.yearFilter);
   const countrySelection = useYearStore((state) => state.countrySelection);
@@ -25,18 +33,18 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
       setDimensions({ width, height });
     });
 
-    resizeObserver.observe(container.parentElement);
+    resizeObserver.observe(container.parentElement!);
 
     return () => resizeObserver.disconnect();
   }, []);
 
   useEffect(() => {
-    if (!countryData || !populationData || !countrySelection.length || dimensions.width === 0) return;
+    if (!countryData || !populationData || !countrySelection.length || dimensions.width === 0 || !svgRef.current) return;
     
     const { width, height } = dimensions;
     const margin = { top: 30, right: 30, bottom: 40, left: 60 };
 
-    const populationMap = new Map();
+    const populationMap = new Map<string, number>();
     populationData.forEach((row) => {
       let total = 0;
       let count = 0;
@@ -102,20 +110,14 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
     );
 
     const processedData = processedAll
-      .filter((d) => countrySelection.includes(d.code))
-      .map((d) => ({ ...d, isSelected: true }))
-      .concat(
-        processedAll
-          .filter((d) => !countrySelection.includes(d.code))
-          .slice(0, 0)
-      );
+      .filter((d) => countrySelection.includes(d.code));
 
     if (!processedData.length) {
       return;
     }
 
-    const xDomain = d3.extent(processedAll, (d) => d.population) || [0, 1];
-    const yDomain = d3.extent(processedAll, (d) => d.medals) || [0, 1];
+    const xDomain = d3.extent(processedAll, (d) => d.population) as [number, number] || [0, 1];
+    const yDomain = d3.extent(processedAll, (d) => d.medals) as [number, number] || [0, 1];
 
     const xScale = d3
       .scaleLinear()
@@ -138,7 +140,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
     const svg = d3.select(svgRef.current);
     
     // Persistent layers
-    let gMain = svg.select(".main-g");
+    let gMain = svg.select<SVGGElement>(".main-g");
     if (gMain.empty()) {
       gMain = svg.append("g").attr("class", "main-g");
       gMain.append("g").attr("class", "xAxis unselectable");
@@ -150,31 +152,31 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
 
     const transition = svg.transition().duration(750).ease(d3.easeExpOut);
 
-    const xAxisGroup = gMain.select(".xAxis")
+    const xAxisGroup = gMain.select<SVGGElement>(".xAxis")
       .attr("transform", `translate(0,${height - margin.bottom})`);
 
-    const yAxisGroup = gMain.select(".yAxis")
+    const yAxisGroup = gMain.select<SVGGElement>(".yAxis")
       .attr("transform", `translate(${margin.left},0)`);
 
     xAxisGroup
       .transition(transition)
-      .call(d3.axisBottom(xScale).tickFormat(d3.format("~s")));
+      .call(d3.axisBottom(xScale).tickFormat(d3.format("~s") as any));
 
     yAxisGroup.transition(transition).call(d3.axisLeft(yScale));
 
     // Style Axes for Catppuccin visibility
-    xAxisGroup.selectAll("path, line").attr("stroke", "#9399b2"); // Overlay2
-    xAxisGroup.selectAll("text").attr("fill", "#cdd6f4"); // Text
-    yAxisGroup.selectAll("path, line").attr("stroke", "#9399b2"); // Overlay2
-    yAxisGroup.selectAll("text").attr("fill", "#cdd6f4"); // Text
+    xAxisGroup.selectAll("path, line").attr("stroke", "#9399b2");
+    xAxisGroup.selectAll("text").attr("fill", "#cdd6f4");
+    yAxisGroup.selectAll("path, line").attr("stroke", "#9399b2");
+    yAxisGroup.selectAll("text").attr("fill", "#cdd6f4");
 
-    gMain.select(".x-axis-label")
+    gMain.select<SVGTextElement>(".x-axis-label")
       .attr("transform", `translate(${width / 2},${height - 5})`)
       .style("text-anchor", "middle")
       .style("fill", "#cdd6f4")
       .text("Population");
 
-    gMain.select(".y-axis-label")
+    gMain.select<SVGTextElement>(".y-axis-label")
       .attr("transform", "rotate(-90)")
       .attr("y", 15)
       .attr("x", 0 - height / 2)
@@ -183,7 +185,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
       .text("Medals");
 
     const dotsLayer = gMain.select(".dots-layer");
-    dotsLayer.selectAll(".dot")
+    dotsLayer.selectAll<SVGCircleElement, any>(".dot")
       .data(processedData, (d) => d.code)
       .join(
         enter => enter.append("circle")
@@ -207,7 +209,7 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
 
     // Tooltips
     svg.selectAll(".dot")
-      .on("mouseover", (event, d) => {
+      .on("mouseover", (event, d: any) => {
         setTooltipState({
           show: true,
           x: event.pageX,
@@ -224,22 +226,23 @@ const Scatterplot = ({ countryData, populationData, dictionaryData, setTooltipSt
         d3.select(event.currentTarget)
           .transition()
           .duration(200)
-          .attr("r", (d) => radiusScale(d.medals) + 4)
+          .attr("r", (d: any) => radiusScale(d.medals) + 4)
           .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
-        setTooltipState((prev) => ({
-          ...prev,
+        setTooltipState({
+          show: true,
+          content: "",
           x: event.pageX,
           y: event.pageY
-        }));
+        } as any);
       })
       .on("mouseout", (event) => {
-        setTooltipState((prev) => ({ ...prev, show: false }));
+        setTooltipState({ show: false, content: "", x: 0, y: 0 });
         d3.select(event.currentTarget)
           .transition()
           .duration(200)
-          .attr("r", (d) => radiusScale(d.medals))
+          .attr("r", (d: any) => radiusScale(d.medals))
           .attr("stroke", "#11111b");
       });
   }, [

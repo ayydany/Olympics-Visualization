@@ -1,11 +1,11 @@
 import "./App.css";
 import "./assets/css/fonts.css";
-import MainComponent from "./components/main/MainComponent";
+import Dashboard from "@/features/dashboard/components/Dashboard";
 
 function App() {
   return (
     <div className="App">
-      <MainComponent />
+      <Dashboard />
     </div>
   );
 }
