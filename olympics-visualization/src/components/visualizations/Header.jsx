@@ -45,7 +45,7 @@ const Header = ({ dictionaryData }) => {
     if (currentState === 3) filterLabel = eventFilter;
 
     return (
-      <h1 className="text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-ctp-text whitespace-nowrap overflow-hidden text-ellipsis px-2">
+      <h1 className="text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-ctp-text whitespace-nowrap overflow-hidden text-ellipsis px-0">
         <span className="text-ctp-mauve">{countriesText}</span>
         <span className="text-ctp-subtext1"> on </span>
         <span className="text-ctp-peach">{filterLabel}</span>
@@ -181,7 +181,7 @@ const Header = ({ dictionaryData }) => {
   }, [dimensions, years, setYearFilter, yearFilter.start, yearFilter.end]);
 
   return (
-    <header className="w-full bg-ctp-mantle border-b border-ctp-surface0 shadow-lg z-50 px-12 py-2 flex flex-col gap-1">
+    <header className="w-full bg-ctp-mantle border-b border-ctp-surface0 shadow-lg z-50 px-16 py-1 flex flex-col gap-0">
       <div className="flex items-center justify-start overflow-hidden">
         {labelText}
       </div>

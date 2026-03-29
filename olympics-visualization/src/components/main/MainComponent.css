@@ -20,6 +20,16 @@
   border-color: var(--ctp-surface1);
 }
 
+.drag-handle:hover {
+  background-color: var(--ctp-surface1);
+  color: var(--ctp-text);
+  transform: scale(1.05);
+}
+
+.drag-handle {
+  transition: all 0.2s ease;
+}
+
 /* React Grid Layout overrides */
 .react-grid-placeholder {
   background: var(--ctp-surface0) !important;
