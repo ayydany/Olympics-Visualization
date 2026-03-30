@@ -1,6 +1,7 @@
 {
   "name": "olympics-visualization",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Interactive Olympics Data Visualization dashboard built with React, D3.js, and TypeScript.",
   "private": true,
   "type": "module",
   "dependencies": {
