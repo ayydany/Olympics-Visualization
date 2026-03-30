@@ -1,12 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    // Vite now supports native tsconfig paths resolution
-    tsconfigPaths: true,
-  } as any,
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   assetsInclude: ["**/*.csv"],
   test: {
     globals: true,
