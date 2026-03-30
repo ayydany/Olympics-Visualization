@@ -1,70 +1,61 @@
-# Getting Started with Create React App
+# Olympics Visualization
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An interactive, modern web application for visualizing historical Olympic Games data. This project provides deep insights into athlete demographics, participation trends, and medal distributions across different years and countries.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+- **Interactive World Map:** Visualize medal counts by country using an interactive map interface.
+- **Bubble Chart:** Explore athlete demographics and medal distributions.
+- **Line Chart:** Track participation and performance trends over the years.
+- **Scatter Plot:** Analyze correlations between different athlete metrics.
+- **Year Navigation:** Seamlessly switch between different Olympic years to see how the games have evolved.
 
-### `npm start`
+## 🛠 Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Frontend:** [React](https://reactjs.org/) (v18+) with [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Data Visualization:** [D3.js](https://d3js.org/) and [React Simple Maps](https://www.react-simple-maps.io/)
+- **State Management:** [Zustand](https://github.com/pmndrs/zustand)
+- **UI Library:** [Material UI (MUI)](https://mui.com/)
+- **Styling:** CSS Modules and [Tailwind CSS](https://tailwindcss.com/)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📂 Project Structure
 
-### `npm test`
+- `src/features/dashboard`: Core visualization components (Map, Charts, etc.)
+- `src/stores`: Zustand store for global state management (e.g., year selection)
+- `src/utils/api.ts`: Data loading and processing utilities
+- `public/data`: Datasets used for visualizations (CSV and JSON)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🏁 Getting Started
 
-### `npm run build`
+### Prerequisites
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Node.js (v18 or higher)
+- npm or bun
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-### `npm run eject`
+### Development
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Run the development server:
+```bash
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Building for Production
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Create an optimized production build:
+```bash
+npm run build
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 📜 License
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is for educational and visualization purposes.
