@@ -1,61 +1,63 @@
 # Olympics Visualization
 
-An interactive, modern web application for visualizing historical Olympic Games data. This project provides deep insights into athlete demographics, participation trends, and medal distributions across different years and countries.
+A modern, interactive data visualization dashboard for Summer Olympics historical data (1896 - 2012). Built with a professional React/Vite/TypeScript stack and high-performance D3.js visualizations.
+
+![Preview](res/preview.png)
 
 ## 🚀 Features
 
-- **Interactive World Map:** Visualize medal counts by country using an interactive map interface.
-- **Bubble Chart:** Explore athlete demographics and medal distributions.
-- **Line Chart:** Track participation and performance trends over the years.
-- **Scatter Plot:** Analyze correlations between different athlete metrics.
-- **Year Navigation:** Seamlessly switch between different Olympic years to see how the games have evolved.
+- **Interactive World Map:** Custom D3.js Mercator projection with zoom/pan and country selection.
+- **Dynamic Bubble Chart:** Force-directed simulation to explore medals by Sport, Discipline, and Event.
+- **Comparative Analysis:** Line charts and Scatter plots with synchronized multi-country selection (up to 4).
+- **Modern UI:** Built with Material UI and styled using the elegant Catppuccin color palette.
+- **Responsive Layout:** Dynamic grid system powered by `react-grid-layout`.
+- **Asynchronous Data:** High-performance runtime fetching of CSV/JSON datasets.
 
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
 
-- **Frontend:** [React](https://reactjs.org/) (v18+) with [TypeScript](https://www.typescriptlang.org/)
+- **Framework:** [React 18+](https://react.dev/) with [TypeScript](https://www.typescriptlang.org/)
 - **Build Tool:** [Vite](https://vitejs.dev/)
-- **Data Visualization:** [D3.js](https://d3js.org/) and [React Simple Maps](https://www.react-simple-maps.io/)
+- **Visualization:** [D3.js](https://d3js.org/)
 - **State Management:** [Zustand](https://github.com/pmndrs/zustand)
-- **UI Library:** [Material UI (MUI)](https://mui.com/)
-- **Styling:** CSS Modules and [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components:** [Material UI](https://mui.com/)
+- **Grid Layout:** [React Grid Layout](https://github.com/STRML/react-grid-layout)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) & [Catppuccin](https://catppuccin.com/)
 
-## 📂 Project Structure
-
-- `src/features/dashboard`: Core visualization components (Map, Charts, etc.)
-- `src/stores`: Zustand store for global state management (e.g., year selection)
-- `src/utils/api.ts`: Data loading and processing utilities
-- `public/data`: Datasets used for visualizations (CSV and JSON)
-
-## 🏁 Getting Started
+## 📦 Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- npm or bun
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [npm](https://www.npmjs.com/) or [bun](https://bun.sh/)
 
 ### Installation
 
-1. Clone the repository
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/ayydany/Olympics-Visualization.git
+   cd Olympics-Visualization
+   ```
+
 2. Install dependencies:
    ```bash
    npm install
    ```
 
-### Development
-
-Run the development server:
-```bash
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
 ### Building for Production
 
-Create an optimized production build:
+To create an optimized production build:
 ```bash
 npm run build
 ```
 
-## 📜 License
+## 📄 License
 
-This project is for educational and visualization purposes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+Made with ❤️ by [ayydany](https://ayydany.com)
