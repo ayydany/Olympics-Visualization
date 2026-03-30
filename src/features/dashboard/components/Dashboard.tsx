@@ -19,9 +19,7 @@ import Linechart from "@/features/dashboard/components/Linechart";
 import Scatterplot from "@/features/dashboard/components/Scatterplot";
 import Worldmap from "@/features/dashboard/components/Worldmap";
 import Tooltip from "@/components/Tooltip";
-import dictionaryDataCsv from "@/data/dictionary.csv";
-import countryDataCsv from "@/data/summer_year_country_event.csv";
-import populationCsv from "@/data/world_population_full.csv";
+import { fetchData } from "@/utils/api";
 import useYearStore from "@/stores/useYearStore";
 import { OlympicRow, DictionaryEntry, TooltipState } from "@/types";
 
@@ -35,6 +33,7 @@ const MainComponent: React.FC = () => {
   const [dictionaryData, setDictionaryData] = useState<DictionaryEntry[] | null>(null);
   const [countryData, setCountyData] = useState<OlympicRow[] | null>(null);
   const [populationData, setPopulationData] = useState<any[] | null>(null);
+  const [worldGeo, setWorldGeo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -62,7 +61,7 @@ const MainComponent: React.FC = () => {
   const countrySelection = useYearStore((state) => state.countrySelection);
 
   useEffect(() => {
-    fetchData();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -76,31 +75,18 @@ const MainComponent: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  const fetchData = () => {
-    Promise.all([
-      d3.csv(dictionaryDataCsv),
-      d3.csv(countryDataCsv),
-      d3.csv(populationCsv),
-    ])
-      .then(([dictionary, country, population]) => {
-        const parsedCountry: OlympicRow[] = (country as any[]).map((d) => ({
-          ...d,
-          Year: +d.Year,
-          GoldCount: +d.GoldCount,
-          SilverCount: +d.SilverCount,
-          BronzeCount: +d.BronzeCount,
-          TotalMedals: +d.GoldCount + +d.SilverCount + +d.BronzeCount,
-        }));
-
-        setDictionaryData(dictionary as unknown as DictionaryEntry[]);
-        setCountyData(parsedCountry);
-        setPopulationData(population);
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setIsLoading(false);
-      });
+  const loadData = async () => {
+    try {
+      const data = await fetchData();
+      setDictionaryData(data.dictionary);
+      setCountyData(data.country);
+      setPopulationData(data.population);
+      setWorldGeo(data.worldGeo);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -116,8 +102,8 @@ const MainComponent: React.FC = () => {
   }, [countrySelection.length, dictionaryData, setDefaultCountries]);
 
   const visReady = useMemo(() => {
-    return dictionaryData && countryData && populationData;
-  }, [dictionaryData, countryData, populationData]);
+    return dictionaryData && countryData && populationData && worldGeo;
+  }, [dictionaryData, countryData, populationData, worldGeo]);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -260,7 +246,7 @@ const MainComponent: React.FC = () => {
                 <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
                   <DragIcon sx={{ fontSize: 24 }} />
                 </div>
-                <Worldmap dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
+                <Worldmap dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} worldGeo={worldGeo!} />
               </div>
             )}
             {visibleCharts.bubblechart && (

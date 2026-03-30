@@ -1,16 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import worldGeo from "@/data/simple_map.json";
 import useYearStore from "@/stores/useYearStore";
 import { DictionaryEntry, TooltipState } from "@/types";
 import "./Worldmap.css";
 
 interface WorldmapProps {
   dictionaryData: DictionaryEntry[];
-  setTooltipState: (state: TooltipState) => void;
+  setTooltipState: (state: TooltipState | ((prev: TooltipState) => TooltipState)) => void;
+  worldGeo: any;
 }
 
-const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState }) => {
+const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, worldGeo }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<SVGGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
