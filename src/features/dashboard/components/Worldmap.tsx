@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import useYearStore from "@/stores/useYearStore";
-import { DictionaryEntry, TooltipState } from "@/types";
+import { DictionaryEntry, TooltipStateSetter, WorldFeature, WorldGeo } from "@/types";
 import "./Worldmap.css";
 
 interface WorldmapProps {
   dictionaryData: DictionaryEntry[];
-  setTooltipState: (state: TooltipState | ((prev: TooltipState) => TooltipState)) => void;
-  worldGeo: any;
+  setTooltipState: TooltipStateSetter;
+  worldGeo: WorldGeo;
   isResizing: boolean;
 }
 
@@ -36,7 +36,9 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
       setDimensions({ width, height });
     });
 
-    resizeObserver.observe(container.parentElement!);
+    if (container.parentElement) {
+      resizeObserver.observe(container.parentElement);
+    }
 
     return () => resizeObserver.disconnect();
   }, [isResizing]);
@@ -53,7 +55,7 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
       .scale(dimensions.width / 6.2)
       .translate([dimensions.width / 2, dimensions.height / 1.5]);
 
-    const path = d3.geoPath().projection(projection);
+    const path = d3.geoPath<WorldFeature>().projection(projection);
 
     if (svg.select("defs").empty()) {
       const defs = svg.append("defs");
@@ -77,16 +79,14 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
 
     svg.call(zoom);
 
-    const countries = g.selectAll<SVGPathElement, any>(".country")
-      .data((worldGeo as any).features);
-
-    countries.enter()
-      .append("path")
+    g.selectAll<SVGPathElement, WorldFeature>(".country")
+      .data(worldGeo.features)
+      .join("path")
       .attr("class", "country")
-      .merge(countries as any)
-      .attr("d", path as any)
-      .attr("fill", (d: any) => {
+      .attr("d", path)
+      .attr("fill", (d) => {
         const name = d.properties.name_long || d.properties.name;
+        if (!name) return "url(#diagonalHatch)";
         const code = nameToCode[name];
         if (!code) return "url(#diagonalHatch)";
         if (countrySelection.includes(code)) {
@@ -96,16 +96,17 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
       })
       .attr("stroke", "#11111b")
       .attr("stroke-width", 0.5)
-      .classed("country-selectable", (d: any) => {
+      .classed("country-selectable", (d) => {
         const name = d.properties.name_long || d.properties.name;
-        return !!nameToCode[name];
+        return !!name && !!nameToCode[name];
       })
-      .classed("country-unselectable", (d: any) => {
+      .classed("country-unselectable", (d) => {
         const name = d.properties.name_long || d.properties.name;
-        return !nameToCode[name];
+        return !name || !nameToCode[name];
       })
-      .on("mouseover", function(event, d: any) {
+      .on("mouseover", function(event, d) {
         const name = d.properties.name_long || d.properties.name;
+        if (!name) return;
         const code = nameToCode[name];
         if (!code) return;
 
@@ -119,7 +120,7 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
         });
       })
       .on("mousemove", (event) => {
-        setTooltipState((prev: any) => ({
+        setTooltipState((prev) => ({
           ...prev,
           x: event.pageX,
           y: event.pageY
@@ -129,8 +130,9 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
         d3.select(this).style("stroke", "#11111b").style("stroke-width", 0.5);
         setTooltipState({ show: false, content: "", x: 0, y: 0 });
       })
-      .on("click", (event, d: any) => {
+      .on("click", (event, d) => {
         const name = d.properties.name_long || d.properties.name;
+        if (!name) return;
         const code = nameToCode[name];
         if (!code) return;
         toggleCountry(code, event.ctrlKey);

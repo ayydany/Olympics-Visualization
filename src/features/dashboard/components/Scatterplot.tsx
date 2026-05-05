@@ -1,13 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import useYearStore from "@/stores/useYearStore";
-import { OlympicRow, DictionaryEntry, TooltipStateSetter } from "@/types";
+import { OlympicRow, DictionaryEntry, PopulationRow, TooltipStateSetter } from "@/types";
 import "./Scatterplot.css";
-
-interface PopulationRow {
-  CountryCode: string;
-  [year: string]: string | number;
-}
 
 interface ScatterPoint {
   code: string;
@@ -49,7 +44,9 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
       setDimensions({ width, height });
     });
 
-    resizeObserver.observe(container.parentElement!);
+    if (container.parentElement) {
+      resizeObserver.observe(container.parentElement);
+    }
 
     return () => resizeObserver.disconnect();
   }, [isResizing]);
@@ -243,7 +240,7 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
           .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
-        setTooltipState((prev: any) => ({
+        setTooltipState((prev) => ({
           ...prev,
           x: event.pageX,
           y: event.pageY

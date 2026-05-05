@@ -1,13 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import useYearStore from "@/stores/useYearStore";
-import { DictionaryEntry, OlympicRow, TooltipStateSetter } from "@/types";
+import { DictionaryEntry, OlympicRow, PopulationRow, TooltipStateSetter } from "@/types";
 import "./PopulationEfficiencyChart.css";
-
-interface PopulationRow {
-  CountryCode: string;
-  [year: string]: string | number;
-}
 
 interface PopulationEfficiencyChartProps {
   countryData: OlympicRow[];

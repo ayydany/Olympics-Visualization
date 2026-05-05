@@ -24,7 +24,7 @@ import Worldmap from "@/features/dashboard/components/Worldmap";
 import Tooltip from "@/components/Tooltip";
 import { fetchData } from "@/utils/api";
 import useYearStore from "@/stores/useYearStore";
-import { OlympicRow, DictionaryEntry, TooltipState } from "@/types";
+import { OlympicRow, DictionaryEntry, PopulationRow, TooltipState, WorldGeo } from "@/types";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -35,8 +35,8 @@ const MainComponent: React.FC = () => {
   const [gridWidth, setGridWidth] = useState(1200);
   const [dictionaryData, setDictionaryData] = useState<DictionaryEntry[] | null>(null);
   const [countryData, setCountyData] = useState<OlympicRow[] | null>(null);
-  const [populationData, setPopulationData] = useState<any[] | null>(null);
-  const [worldGeo, setWorldGeo] = useState<any>(null);
+  const [populationData, setPopulationData] = useState<PopulationRow[] | null>(null);
+  const [worldGeo, setWorldGeo] = useState<WorldGeo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isResizing, setIsResizing] = useState(false);
   const [isReorderMode, setIsReorderMode] = useState(false);
@@ -108,8 +108,11 @@ const MainComponent: React.FC = () => {
     }
   }, [countrySelection.length, dictionaryData, setDefaultCountries]);
 
-  const visReady = useMemo(() => {
-    return dictionaryData && countryData && populationData && worldGeo;
+  const readyData = useMemo(() => {
+    if (!dictionaryData || !countryData || !populationData || !worldGeo) {
+      return null;
+    }
+    return { dictionaryData, countryData, populationData, worldGeo };
   }, [dictionaryData, countryData, populationData, worldGeo]);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -280,7 +283,7 @@ const MainComponent: React.FC = () => {
 
       <div ref={gridContainerRef} className="flex-grow overflow-y-auto bg-ctp-crust p-2 relative">
         {isLoading && <div className="p-3 text-ctp-subtext0 font-medium text-center mt-10">Loading dataset...</div>}
-        {visReady && (
+        {readyData && (
           <ResponsiveGridLayout
             className="layout"
             layouts={filteredLayouts}
@@ -296,42 +299,42 @@ const MainComponent: React.FC = () => {
             {visibleCharts.worldmap && (
               <div key="worldmap" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
                 <div className="viz-content w-full h-full pointer-events-auto">
-                  <Worldmap dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} worldGeo={worldGeo!} isResizing={isResizing} />
+                  <Worldmap dictionaryData={readyData.dictionaryData} setTooltipState={updateTooltipState} worldGeo={readyData.worldGeo} isResizing={isResizing} />
                 </div>
               </div>
             )}
             {visibleCharts.bubblechart && (
               <div key="bubblechart" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
                 <div className="viz-content w-full h-full pointer-events-auto">
-                  <Bubblechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
+                  <Bubblechart countryData={readyData.countryData} dictionaryData={readyData.dictionaryData} setTooltipState={updateTooltipState} isResizing={isResizing} />
                 </div>
               </div>
             )}
             {visibleCharts.scatterplot && (
               <div key="scatterplot" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
                 <div className="viz-content w-full h-full pointer-events-auto">
-                  <Scatterplot countryData={countryData!} populationData={populationData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
+                  <Scatterplot countryData={readyData.countryData} populationData={readyData.populationData} dictionaryData={readyData.dictionaryData} setTooltipState={updateTooltipState} isResizing={isResizing} />
                 </div>
               </div>
             )}
             {visibleCharts.linechart && (
               <div key="linechart" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
                 <div className="viz-content w-full h-full pointer-events-auto">
-                  <Linechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
+                  <Linechart countryData={readyData.countryData} dictionaryData={readyData.dictionaryData} setTooltipState={updateTooltipState} isResizing={isResizing} />
                 </div>
               </div>
             )}
             {visibleCharts.stackedMedals && (
               <div key="stackedMedals" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
                 <div className="viz-content w-full h-full pointer-events-auto">
-                  <StackedMedalBars countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
+                  <StackedMedalBars countryData={readyData.countryData} dictionaryData={readyData.dictionaryData} setTooltipState={updateTooltipState} isResizing={isResizing} />
                 </div>
               </div>
             )}
             {visibleCharts.populationEfficiency && (
               <div key="populationEfficiency" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
                 <div className="viz-content w-full h-full pointer-events-auto">
-                  <PopulationEfficiencyChart countryData={countryData!} populationData={populationData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
+                  <PopulationEfficiencyChart countryData={readyData.countryData} populationData={readyData.populationData} dictionaryData={readyData.dictionaryData} setTooltipState={updateTooltipState} isResizing={isResizing} />
                 </div>
               </div>
             )}

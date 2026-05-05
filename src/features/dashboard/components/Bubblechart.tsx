@@ -49,7 +49,9 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
       setDimensions({ width, height });
     });
 
-    resizeObserver.observe(container.parentElement!);
+    if (container.parentElement) {
+      resizeObserver.observe(container.parentElement);
+    }
 
     return () => resizeObserver.disconnect();
   }, [isResizing]);
@@ -246,7 +248,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
           .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
-        setTooltipState((prev: any) => ({
+        setTooltipState((prev) => ({
           ...prev,
           x: event.pageX,
           y: event.pageY
