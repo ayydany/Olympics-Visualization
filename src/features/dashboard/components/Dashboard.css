@@ -1,0 +1,79 @@
+.main-container {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.grid-container-wrapper {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.vis-cell {
+  background-color: var(--ctp-mantle);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ctp-surface0);
+  transition: border-color 0.2s ease;
+}
+
+.vis-cell:hover {
+  border-color: var(--ctp-surface1);
+}
+
+.vis-cell.is-reordering {
+  border-color: var(--ctp-mauve);
+  cursor: grab;
+}
+
+.vis-cell.is-reordering:active {
+  cursor: grabbing;
+}
+
+.vis-cell.is-reordering .viz-content {
+  pointer-events: none;
+}
+
+.react-grid-item.react-draggable-dragging .vis-cell {
+  cursor: grabbing;
+}
+
+.react-grid-placeholder {
+  background: var(--ctp-surface0) !important;
+  border-radius: 12px !important;
+  opacity: 0.5 !important;
+  z-index: 1 !important;
+}
+
+.react-resizable-handle {
+  width: 44px;
+  height: 44px;
+  bottom: 0px;
+  right: 0px;
+  background-image: none !important;
+  cursor: nwse-resize;
+  z-index: 60 !important;
+}
+
+.react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 18px;
+  height: 18px;
+  border-right: 4px solid var(--ctp-text);
+  border-bottom: 4px solid var(--ctp-text);
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.vis-cell:hover .react-resizable-handle::after {
+  border-color: var(--ctp-text);
+  opacity: 1;
+}

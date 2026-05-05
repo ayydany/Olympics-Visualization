@@ -1,32 +1,72 @@
 # Olympics Visualization
 
-![screenshot](https://github.com/DanyBoss/Olympics-Visualization/blob/master/res/preview.png?raw=true)
-[Live Version](http://olympics.ayydany.space/)
-
-## About
-This is a web visualization of Olympic data from 1896 until 2012. 
-It currrently only features data from the Summer Olympics, but adding data from Winter Olympics is planned for the future.
+A modern, interactive data visualization dashboard for Summer Olympics historical data (1896 - 2012). The app is now a fully TypeScript React/Vite project with high-performance D3.js visualizations, shared state, responsive layouts, and runtime CSV/JSON data loading.
 
 This visualization was initially developed as a project for the Masters Course Information Visualization at Lisbon Técnico but turned into sort of a hobby of mine.
 
-## Usage
-### Here's a quick rundown on how things work around here.
+## Features
 
-The main focus in this vizualization is the number of **Olympic Medals** won (unless  stated otherwise like in the **Scatterplot**) and comparing this number by several factors.
+- **Interactive World Map:** Custom D3.js Mercator projection with zoom/pan and country selection.
+- **Dynamic Bubble Chart:** Force-directed simulation to explore medals by Sport, Discipline, and Event.
+- **Comparative Trends:** Line charts and scatter plots with synchronized multi-country selection (up to 4).
+- **Stacked Medal Bars:** Gold, silver, and bronze composition for selected countries across the active year and sport filters.
+- **Population Efficiency:** Medal output normalized by average population, shown as medals per million people.
+- **Reorderable Dashboard:** Toggle reorder mode to move and resize visualizations in a responsive grid.
+- **Modern UI:** Built with Material UI and styled using the elegant Catppuccin color palette.
+- **Responsive Layout:** Dynamic grid system powered by `react-grid-layout`.
+- **Asynchronous Data:** High-performance runtime fetching of CSV/JSON datasets.
 
-The visualization is split into 5 parts:
-- **Time Slider** 
-   - Serves as a time interval selector.
-- **World Map** 
-    - Literally a country selector.
-- **Bubble Chart** 
-    - Shows what events currently have medals according to the filters selected.
-- **Scatterplot** 
-    - Compares information regarding total country medals wons with the demography of said country.
-- **Line Chart** 
-    - Shows the evolution of medals won according to the filters selected.
+## Tech Stack
 
-Only the **Timer Slider**, **World Map** and **Bubble Chart** are interactable, the others serve as simple views. Any change to any filter (be it a Country, a specific event or another time interval) will cause the visualization to update according to the user requests.
+- **Framework:** [React 18](https://react.dev/) with 100% [TypeScript](https://www.typescriptlang.org/) application code
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Visualization:** [D3.js](https://d3js.org/) for SVG rendering, force simulation, axes, scales, maps, and transitions
+- **State Management:** [Zustand](https://github.com/pmndrs/zustand)
+- **UI Components:** [Material UI](https://mui.com/)
+- **Grid Layout:** [React Grid Layout](https://github.com/STRML/react-grid-layout)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/), component CSS, and [Catppuccin](https://catppuccin.com/)
+- **Deployment:** GitHub Pages via GitHub Actions, with custom domain support
 
-## Credits
-This visualization is made using HTML5, JS with help of [D3.js](https://d3js.org/) and [JQuery](https://jquery.com/)
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [npm](https://www.npmjs.com/) or [Bun](https://bun.sh/)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/ayydany/Olympics-Visualization.git
+   cd Olympics-Visualization
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Building for Production
+
+To create an optimized production build:
+```bash
+npm run build
+```
+
+With Bun:
+```bash
+bun run build
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+Made with ❤️ by [ayydany](https://ayydany.com)

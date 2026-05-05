@@ -1,0 +1,31 @@
+#linechart {    
+    width: 100%;
+    height: 100%;
+    background: transparent; 
+    position: relative;
+}
+
+#linechart .line {
+    fill: none;
+}
+
+#linechart .axislabel {
+    font-family: 'Montserrat', 'sans-serif';
+    font-size: 12px;
+    font-weight: 700;
+    fill: var(--ctp-text) !important;
+}
+
+#linechart .xAxis path,
+#linechart .xAxis line,
+#linechart .yAxis path,
+#linechart .yAxis line {
+    stroke: var(--ctp-overlay2) !important;
+}
+
+#linechart .xAxis text,
+#linechart .yAxis text {
+    fill: var(--ctp-subtext1) !important;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+}

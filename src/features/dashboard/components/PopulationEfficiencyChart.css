@@ -1,0 +1,27 @@
+#population-efficiency-chart {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  position: relative;
+}
+
+#population-efficiency-chart .axislabel {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--ctp-text) !important;
+}
+
+#population-efficiency-chart .xAxis path,
+#population-efficiency-chart .xAxis line,
+#population-efficiency-chart .yAxis path,
+#population-efficiency-chart .yAxis line {
+  stroke: var(--ctp-overlay2) !important;
+}
+
+#population-efficiency-chart .xAxis text,
+#population-efficiency-chart .yAxis text {
+  fill: var(--ctp-subtext1) !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}

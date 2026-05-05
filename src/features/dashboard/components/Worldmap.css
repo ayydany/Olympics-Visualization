@@ -1,0 +1,25 @@
+#worldmap {
+    width: 100%;
+    height: 100%;
+    background: var(--ctp-mantle);
+    position: relative;
+    overflow: hidden;
+}
+
+#worldmap svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.country {
+    transition: stroke 0.2s, stroke-width 0.2s;
+}
+
+.country-selectable {
+    cursor: pointer;
+}
+
+.country-unselectable {
+    cursor: not-allowed;
+}

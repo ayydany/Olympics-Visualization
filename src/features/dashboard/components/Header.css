@@ -1,0 +1,95 @@
+.header-new {
+  width: 100%;
+  background-color: var(--ctp-mantle);
+  border-bottom: 1px solid var(--ctp-surface0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  padding: 0.15rem 0;
+  box-sizing: border-box;
+}
+
+.title-row {
+  padding: 0.25rem 1.125rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.title-text {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 2.2rem;
+  letter-spacing: -0.04em;
+  color: var(--ctp-text);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.title-text .accent {
+  color: var(--ctp-mauve);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.slider-row {
+  width: 100%;
+  height: 44px;
+  padding: 0 1.125rem;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+
+.slider-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.track {
+  stroke: var(--ctp-surface1);
+  stroke-width: 6px;
+  stroke-linecap: round;
+}
+
+.track-inset {
+  stroke: var(--ctp-mauve);
+  stroke-width: 6px;
+  stroke-opacity: 0.7;
+  stroke-linecap: round;
+}
+
+.track-overlay {
+  pointer-events: stroke;
+  stroke-width: 40px;
+  stroke: transparent;
+  cursor: pointer;
+}
+
+.handle {
+  fill: var(--ctp-mauve);
+  stroke: var(--ctp-mantle);
+  stroke-width: 2px;
+  transition: transform 0.2s ease, fill 0.2s ease;
+}
+
+.handle.active {
+  fill: var(--ctp-text);
+  r: 10;
+}
+
+.ticks text {
+  font-size: 10px;
+  fill: var(--ctp-subtext1);
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.unselectable {
+  user-select: none;
+}
