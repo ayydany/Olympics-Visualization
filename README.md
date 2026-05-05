@@ -1,20 +1,20 @@
 # Olympics Visualization
 
-A modern, interactive data visualization dashboard for Summer Olympics historical data (1896 - 2012). The app is now a fully TypeScript React/Vite project with high-performance D3.js visualizations, shared state, responsive layouts, and runtime CSV/JSON data loading.
+An interactive dashboard for exploring Summer Olympics data from 1896 to 2012.
 
 This visualization was initially developed as a project for the Masters Course Information Visualization at Lisbon Técnico but turned into sort of a hobby of mine.
 
+The project has changed quite a bit since the first version. It is now a 100% TypeScript app built with React, Vite, and D3.js, with the data loaded from CSV/JSON files at runtime. The goal is still simple: make it easy to move between countries, years, sports, and medal breakdowns without losing the bigger picture.
+
 ## Features
 
-- **Interactive World Map:** Custom D3.js Mercator projection with zoom/pan and country selection.
-- **Dynamic Bubble Chart:** Force-directed simulation to explore medals by Sport, Discipline, and Event.
-- **Comparative Trends:** Line charts and scatter plots with synchronized multi-country selection (up to 4).
-- **Stacked Medal Bars:** Gold, silver, and bronze composition for selected countries across the active year and sport filters.
-- **Population Efficiency:** Medal output normalized by average population, shown as medals per million people.
-- **Reorderable Dashboard:** Toggle reorder mode to move and resize visualizations in a responsive grid.
-- **Modern UI:** Built with Material UI and styled using the elegant Catppuccin color palette.
-- **Responsive Layout:** Dynamic grid system powered by `react-grid-layout`.
-- **Asynchronous Data:** High-performance runtime fetching of CSV/JSON datasets.
+- **World map:** Select countries directly from a D3-rendered map with zoom and pan support.
+- **Bubble chart:** Explore medals by sport, discipline, and event through a force-based view.
+- **Line and scatter charts:** Compare selected countries across years and medal totals.
+- **Stacked medal bars:** See gold, silver, and bronze composition for the active country, year, and sport filters.
+- **Population efficiency:** Compare medal output normalized by average population.
+- **Responsive dashboard:** Move and resize visualizations through a grid layout built for desktop and smaller screens.
+- **Runtime data loading:** Load the Olympics, population, and world map datasets from public CSV/JSON files.
 
 ## Tech Stack
 
@@ -25,7 +25,8 @@ This visualization was initially developed as a project for the Masters Course I
 - **UI Components:** [Material UI](https://mui.com/)
 - **Grid Layout:** [React Grid Layout](https://github.com/STRML/react-grid-layout)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/), component CSS, and [Catppuccin](https://catppuccin.com/)
-- **Deployment:** GitHub Pages via GitHub Actions, with custom domain support
+- **Tooling:** Bun and npm scripts for local development, testing, and production builds
+- **Deployment:** GitHub Pages through GitHub Actions
 
 ## Getting Started
 
@@ -37,17 +38,20 @@ This visualization was initially developed as a project for the Masters Course I
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/ayydany/Olympics-Visualization.git
    cd Olympics-Visualization
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -55,6 +59,7 @@ This visualization was initially developed as a project for the Masters Course I
 ### Building for Production
 
 To create an optimized production build:
+
 ```bash
 npm run build
 ```
@@ -69,4 +74,4 @@ bun run build
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-Made with ❤️ by [ayydany](https://ayydany.com)
+Made with love by [ayydany](https://ayydany.com)
