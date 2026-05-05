@@ -1,0 +1,28 @@
+#stacked-medal-bars {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  position: relative;
+}
+
+#stacked-medal-bars .axislabel {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--ctp-text) !important;
+}
+
+#stacked-medal-bars .xAxis path,
+#stacked-medal-bars .xAxis line,
+#stacked-medal-bars .yAxis path,
+#stacked-medal-bars .yAxis line {
+  stroke: var(--ctp-overlay2) !important;
+}
+
+#stacked-medal-bars .xAxis text,
+#stacked-medal-bars .yAxis text,
+#stacked-medal-bars .legend text {
+  fill: var(--ctp-subtext1) !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}

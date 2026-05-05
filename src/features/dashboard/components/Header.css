@@ -51,7 +51,6 @@
   overflow: visible;
 }
 
-/* D3 Slider Styling */
 .track {
   stroke: var(--ctp-surface1);
   stroke-width: 6px;

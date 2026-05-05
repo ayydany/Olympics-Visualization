@@ -1,17 +1,34 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import useYearStore from "@/stores/useYearStore";
-import { OlympicRow, DictionaryEntry, TooltipState } from "@/types";
+import { OlympicRow, DictionaryEntry, TooltipStateSetter } from "@/types";
 import "./Scatterplot.css";
+
+interface PopulationRow {
+  CountryCode: string;
+  [year: string]: string | number;
+}
+
+interface ScatterPoint {
+  code: string;
+  name: string;
+  population: number;
+  medals: number;
+  gold: number;
+  silver: number;
+  bronze: number;
+  color: string;
+}
 
 interface ScatterplotProps {
   countryData: OlympicRow[];
-  populationData: any[];
+  populationData: PopulationRow[];
   dictionaryData: DictionaryEntry[];
-  setTooltipState: (state: TooltipState) => void;
+  setTooltipState: TooltipStateSetter;
+  isResizing: boolean;
 }
 
-const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, dictionaryData, setTooltipState }) => {
+const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, dictionaryData, setTooltipState, isResizing }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const yearFilter = useYearStore((state) => state.yearFilter);
@@ -22,13 +39,12 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
   const eventFilter = useYearStore((state) => state.eventFilter);
   const getCountryColor = useYearStore((state) => state.getCountryColor);
 
-  // Handle ResizeObserver
   useEffect(() => {
     const container = svgRef.current;
     if (!container) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      if (!entries || entries.length === 0) return;
+      if (!entries || entries.length === 0 || isResizing) return;
       const { width, height } = entries[0].contentRect;
       setDimensions({ width, height });
     });
@@ -36,7 +52,7 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
     resizeObserver.observe(container.parentElement!);
 
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [isResizing]);
 
   useEffect(() => {
     if (!countryData || !populationData || !countrySelection.length || dimensions.width === 0 || !svgRef.current) return;
@@ -87,7 +103,7 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
       (d) => d.Country
     );
 
-    const processedAll = Array.from(populationMap.entries()).map(
+    const processedAll: ScatterPoint[] = Array.from(populationMap.entries()).map(
       ([code, population]) => {
         const medals = medalsMap.get(code) || {
           gold: 0,
@@ -139,7 +155,6 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
 
     const svg = d3.select(svgRef.current);
     
-    // Persistent layers
     let gMain = svg.select<SVGGElement>(".main-g");
     if (gMain.empty()) {
       gMain = svg.append("g").attr("class", "main-g");
@@ -150,7 +165,7 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
       gMain.append("g").attr("class", "dots-layer");
     }
 
-    const transition = svg.transition().duration(750).ease(d3.easeExpOut);
+    const transition: any = svg.transition().duration(750).ease(d3.easeExpOut);
 
     const xAxisGroup = gMain.select<SVGGElement>(".xAxis")
       .attr("transform", `translate(0,${height - margin.bottom})`);
@@ -164,7 +179,6 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
 
     yAxisGroup.transition(transition).call(d3.axisLeft(yScale));
 
-    // Style Axes for Catppuccin visibility
     xAxisGroup.selectAll("path, line").attr("stroke", "#9399b2");
     xAxisGroup.selectAll("text").attr("fill", "#cdd6f4");
     yAxisGroup.selectAll("path, line").attr("stroke", "#9399b2");
@@ -184,8 +198,8 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
       .style("fill", "#cdd6f4")
       .text("Medals");
 
-    const dotsLayer = gMain.select(".dots-layer");
-    dotsLayer.selectAll<SVGCircleElement, any>(".dot")
+    const dotsLayer = gMain.select<SVGGElement>(".dots-layer");
+    dotsLayer.selectAll<SVGCircleElement, ScatterPoint>(".dot")
       .data(processedData, (d) => d.code)
       .join(
         enter => enter.append("circle")
@@ -193,7 +207,7 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
           .attr("r", (d) => radiusScale(d.medals))
           .attr("cx", (d) => xScale(d.population))
           .attr("cy", (d) => yScale(d.medals))
-          .attr("stroke", "#11111b") // Crust
+          .attr("stroke", "#11111b")
           .attr("fill", (d) => d.color)
           .attr("opacity", 0)
           .call(enter => enter.transition(transition).attr("opacity", 1)),
@@ -207,9 +221,8 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
         exit => exit.transition(transition).attr("r", 0).remove()
       );
 
-    // Tooltips
-    svg.selectAll(".dot")
-      .on("mouseover", (event, d: any) => {
+    svg.selectAll<SVGCircleElement, ScatterPoint>(".dot")
+      .on("mouseover", (event, d) => {
         setTooltipState({
           show: true,
           x: event.pageX,
@@ -221,12 +234,12 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
                       <span style="color: #bac2de">🥈 ${d.silver}</span> | 
                       <span style="color: #fab387">🥉 ${d.bronze}</span>
                     </center>
-                    Total Medals: ${d.total}`,
+                    Total Medals: ${d.medals}`,
         });
         d3.select(event.currentTarget)
           .transition()
           .duration(200)
-          .attr("r", (d: any) => radiusScale(d.medals) + 4)
+          .attr("r", (d: unknown) => radiusScale((d as ScatterPoint).medals) + 4)
           .attr("stroke", "#cdd6f4");
       })
       .on("mousemove", (event) => {
@@ -241,7 +254,7 @@ const Scatterplot: React.FC<ScatterplotProps> = ({ countryData, populationData, 
         d3.select(event.currentTarget)
           .transition()
           .duration(200)
-          .attr("r", (d: any) => radiusScale(d.medals))
+          .attr("r", (d: unknown) => radiusScale((d as ScatterPoint).medals))
           .attr("stroke", "#11111b");
       });
   }, [

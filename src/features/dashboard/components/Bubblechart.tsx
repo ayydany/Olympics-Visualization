@@ -1,37 +1,50 @@
 import React, { useRef, useEffect, useState } from "react";
 import "./Bubblechart.css";
 import * as d3 from "d3";
+import { IconButton, Tooltip as MuiTooltip } from "@mui/material";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import useYearStore from "@/stores/useYearStore";
-import { DictionaryEntry, OlympicRow, TooltipState } from "@/types";
+import { DictionaryEntry, OlympicRow, TooltipStateSetter } from "@/types";
+
+type BubbleNode = Omit<OlympicRow, "Country" | "Year"> & {
+  Country: string | null;
+  Sport: string;
+  Discipline: string;
+  Event: string;
+  x?: number;
+  y?: number;
+};
 
 interface BubblechartProps {
   dictionaryData: DictionaryEntry[];
   countryData: OlympicRow[];
-  setTooltipState: (state: TooltipState) => void;
+  setTooltipState: TooltipStateSetter;
+  isResizing: boolean;
 }
 
-const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, setTooltipState }) => {
+const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, setTooltipState, isResizing }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+  const previousResetRef = useRef(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [resetLayoutVersion, setResetLayoutVersion] = useState(0);
   const yearFilter = useYearStore((state) => state.yearFilter);
   const countrySelection = useYearStore((state) => state.countrySelection);
   const currentState = useYearStore((state) => state.currentState);
   const currentFilterKeyword = useYearStore(
     (state) => state.currentFilterKeyword
-  ) as keyof OlympicRow;
+  ) as "Sport" | "Discipline" | "Event";
   const sportFilter = useYearStore((state) => state.sportFilter);
   const disciplineFilter = useYearStore((state) => state.disciplineFilter);
   const eventFilter = useYearStore((state) => state.eventFilter);
   const setSelectedNode = useYearStore((state) => state.setSelectedNode);
   const advanceState = useYearStore((state) => state.advanceState);
 
-  // Handle ResizeObserver
   useEffect(() => {
     const container = svgRef.current;
     if (!container) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      if (!entries || entries.length === 0) return;
+      if (!entries || entries.length === 0 || isResizing) return;
       const { width, height } = entries[0].contentRect;
       setDimensions({ width, height });
     });
@@ -39,7 +52,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
     resizeObserver.observe(container.parentElement!);
 
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [isResizing]);
 
   useEffect(() => {
     if (!dictionaryData || !countryData || dimensions.width === 0 || !svgRef.current) {
@@ -86,9 +99,9 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
             BronzeCount: 0,
             TotalMedals: 0,
             Country: "" as string | null,
-            Sport: "" as string | null,
-            Discipline: "" as string | null,
-            Event: "" as string | null,
+            Sport: "",
+            Discipline: "",
+            Event: "",
           }
         );
         return totals;
@@ -96,7 +109,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
       (d) => d[currentFilterKeyword] as string
     );
 
-    const processedData = Array.from(processedMap, ([key, value]) => ({
+    const processedData: BubbleNode[] = Array.from(processedMap, ([key, value]) => ({
       ...value,
       [currentFilterKeyword]: key,
     })).sort((a, b) => d3.descending(a.TotalMedals, b.TotalMedals));
@@ -106,7 +119,6 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
       .domain([1, d3.max(processedData, (d) => d.TotalMedals || 1)!])
       .range([16, 75 - processedData.length / 2]);
 
-    // Catppuccin Accents
     const catppuccinAccents = [
       "#cba6f7", "#89b4fa", "#a6e3a1", "#f9e2af", "#fab387", "#f38ba8", 
       "#f5c2e7", "#94e2d5", "#89dceb", "#74c7ec", "#b4befe", "#f2cdcd",
@@ -120,7 +132,11 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
       .attr("width", width)
       .attr("height", height);
 
-    // Persistent layers
+    if (previousResetRef.current !== resetLayoutVersion) {
+      svg.select(".bubbles-g").remove();
+      previousResetRef.current = resetLayoutVersion;
+    }
+
     let gBubbles = svg.select<SVGGElement>(".bubbles-g");
     if (gBubbles.empty()) {
       gBubbles = svg.append("g").attr("class", "bubbles-g");
@@ -132,14 +148,14 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
     }
 
     const simulation = d3
-      .forceSimulation(processedData as any)
+      .forceSimulation<BubbleNode>(processedData)
       .force("x", d3.forceX(width / 2).strength(0.08))
       .force("y", d3.forceY(height / 2).strength(0.08))
       .force("charge", d3.forceManyBody().strength(-20))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collide", d3.forceCollide().strength(0.7).radius((d: any) => radiusScale(d.TotalMedals) + 3));
+      .force("collide", d3.forceCollide<BubbleNode>().strength(0.7).radius((d) => radiusScale(d.TotalMedals) + 3));
 
-    const bubbleNodes = gBubbles.selectAll<SVGGElement, any>(".bubble-g")
+    const bubbleNodes = gBubbles.selectAll<SVGGElement, BubbleNode>(".bubble-g")
       .data(processedData, d => d[currentFilterKeyword] as string)
       .join(
         enter => {
@@ -196,7 +212,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
         return label;
       });
 
-    const showTooltip = (event: any, d: any) => {
+    const showTooltip = (event: MouseEvent, d: BubbleNode) => {
       setTooltipState({
         show: true,
         x: event.pageX,
@@ -218,10 +234,11 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
     };
 
     bubbleNodes.select(".bubble-circle")
-      .style("cursor", "pointer") // Add pointer cursor
+      .style("cursor", "pointer")
       .on("mouseover", function (event, d) {
         showTooltip(event, d);
         d3.select(this)
+          .interrupt()
           .transition()
           .duration(300)
           .attr("r", radiusScale(d.TotalMedals) + 5)
@@ -238,6 +255,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
       .on("mouseout", function (event, d) {
         hideTooltip();
         d3.select(this)
+          .interrupt()
           .transition()
           .duration(300)
           .attr("r", radiusScale(d.TotalMedals))
@@ -248,25 +266,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
         hideTooltip();
         setSelectedNode(d as unknown as OlympicRow);
         advanceState(1);
-      })
-      .call(
-        d3
-          .drag<SVGCircleElement, any>()
-          .on("start", (event, d) => {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-          })
-          .on("drag", (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
-          })
-          .on("end", (event, d) => {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-          }) as any
-      );
+      });
 
     simulation.on("tick", () => {
       bubbleNodes.attr("transform", d => `translate(${d.x},${d.y})`);
@@ -288,6 +288,7 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
     yearFilter,
     dictionaryData,
     dimensions,
+    resetLayoutVersion,
     setTooltipState,
   ]);
 
@@ -314,6 +315,30 @@ const Bubblechart: React.FC<BubblechartProps> = ({ dictionaryData, countryData, 
               : "Sports"}
           </div>
         </div>
+      </div>
+      <div id="reset-view-container">
+        <MuiTooltip title="Reset Bubble Positions">
+          <IconButton
+            onClick={() => {
+              setTooltipState({ show: false, content: "", x: 0, y: 0 });
+              setResetLayoutVersion((version) => version + 1);
+            }}
+            size="small"
+            aria-label="Reset bubble positions"
+            sx={{
+              backgroundColor: "var(--ctp-mantle)",
+              border: "1px solid var(--ctp-surface0)",
+              color: "var(--ctp-text)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+              "&:hover": {
+                backgroundColor: "var(--ctp-surface0)",
+                transform: "translateY(-2px)",
+              },
+            }}
+          >
+            <RestartAltIcon fontSize="small" />
+          </IconButton>
+        </MuiTooltip>
       </div>
       <svg ref={svgRef} width="100%" height="100%" />
     </div>

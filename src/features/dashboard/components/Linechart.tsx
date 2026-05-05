@@ -1,10 +1,36 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import * as d3 from "d3";
 import useYearStore from "@/stores/useYearStore";
+import { DictionaryEntry, OlympicRow, TooltipStateSetter } from "@/types";
 import "./Linechart.css";
 
-const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
-  const svgRef = useRef();
+interface LinechartProps {
+  countryData: OlympicRow[];
+  dictionaryData: DictionaryEntry[];
+  setTooltipState: TooltipStateSetter;
+  isResizing: boolean;
+}
+
+interface MedalTotals {
+  gold: number;
+  silver: number;
+  bronze: number;
+  total: number;
+}
+
+interface LinePoint extends MedalTotals {
+  year: number;
+  countryName: string;
+}
+
+interface DotPoint extends LinePoint {
+  color: string;
+  countryCode: string;
+  r: number;
+}
+
+const Linechart: React.FC<LinechartProps> = ({ countryData, dictionaryData, setTooltipState, isResizing }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const years = useYearStore((state) => state.years);
   const yearFilter = useYearStore((state) => state.yearFilter);
@@ -21,21 +47,22 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
     );
   }, [years, yearFilter]);
 
-  // Handle ResizeObserver
   useEffect(() => {
     const container = svgRef.current;
     if (!container) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      if (!entries || entries.length === 0) return;
+      if (!entries || entries.length === 0 || isResizing) return;
       const { width, height } = entries[0].contentRect;
       setDimensions({ width, height });
     });
 
-    resizeObserver.observe(container.parentElement);
+    if (container.parentElement) {
+      resizeObserver.observe(container.parentElement);
+    }
 
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [isResizing]);
 
   useEffect(() => {
     if (!countryData || !countrySelection.length || dimensions.width === 0) return;
@@ -72,7 +99,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
     );
 
     const filledSeries = countrySelection.map((code) => {
-      const perYear = totalsByCountry.get(code) || new Map();
+      const perYear = totalsByCountry.get(code) || new Map<number, MedalTotals>();
       const countryInfo = dictionaryData?.find((d) => d.CountryCode === code);
       const values = years.map((year) => {
         const medals = perYear.get(year) || {
@@ -94,7 +121,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       filteredYears && filteredYears.length ? filteredYears : years;
 
     const xScale = d3
-      .scalePoint()
+      .scalePoint<number>()
       .domain(activeYears)
       .range([margin.left, width - margin.right]);
 
@@ -109,15 +136,14 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .range([height - margin.bottom, margin.top]);
 
     const line = d3
-      .line()
-      .x((d) => xScale(d.year))
+      .line<LinePoint>()
+      .x((d) => xScale(d.year) ?? margin.left)
       .y((d) => yScale(d.total))
       .curve(d3.curveMonotoneX);
 
     const svg = d3.select(svgRef.current);
     
-    // Persistent layers
-    let gMain = svg.select(".main-g");
+    let gMain = svg.select<SVGGElement>(".main-g");
     if (gMain.empty()) {
       gMain = svg.append("g").attr("class", "main-g");
       gMain.append("g").attr("class", "xAxis unselectable");
@@ -128,7 +154,7 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       gMain.append("g").attr("class", "dots-layer");
     }
 
-    const transition = svg.transition().duration(750).ease(d3.easeExpOut);
+    const transition: any = svg.transition().duration(750).ease(d3.easeExpOut);
 
     const xAxisGroup = gMain.select(".xAxis")
       .attr("transform", `translate(0,${height - margin.bottom})`);
@@ -141,16 +167,15 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       .call(
         d3
           .axisBottom(xScale)
-          .tickValues(activeYears.filter((_, i) => i % 2 === 0))
+          .tickValues(activeYears.filter((_, i) => i % 2 === 0)) as any
       );
 
-    yAxisGroup.transition(transition).call(d3.axisLeft(yScale));
+    yAxisGroup.transition(transition).call(d3.axisLeft(yScale) as any);
 
-    // Style Axes for Catppuccin visibility
-    xAxisGroup.selectAll("path, line").attr("stroke", "#9399b2"); // Overlay2
-    xAxisGroup.selectAll("text").attr("fill", "#cdd6f4"); // Text
-    yAxisGroup.selectAll("path, line").attr("stroke", "#9399b2"); // Overlay2
-    yAxisGroup.selectAll("text").attr("fill", "#cdd6f4"); // Text
+    xAxisGroup.selectAll("path, line").attr("stroke", "#9399b2");
+    xAxisGroup.selectAll("text").attr("fill", "#cdd6f4");
+    yAxisGroup.selectAll("path, line").attr("stroke", "#9399b2");
+    yAxisGroup.selectAll("text").attr("fill", "#cdd6f4");
 
     gMain.select(".x-axis-label")
       .attr("transform", `translate(${width / 2},${height - 5})`)
@@ -174,9 +199,8 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       ),
     }));
 
-    // Lines
-    const linesLayer = gMain.select(".lines-layer");
-    linesLayer.selectAll(".line")
+    const linesLayer = gMain.select<SVGGElement>(".lines-layer");
+    linesLayer.selectAll<SVGPathElement, (typeof pathData)[number]>(".line")
       .data(pathData, (d) => d.series.country)
       .join(
         enter => enter.append("path")
@@ -185,20 +209,19 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
           .attr("stroke-width", 2)
           .attr("stroke", d => d.series.color)
           .attr("opacity", 0)
-          .attr("d", d => line(d.values))
+          .attr("d", d => line(d.values) ?? "")
           .call(enter => enter.transition(transition).attr("opacity", 1)),
         update => update
           .call(update => update.transition(transition)
             .attr("stroke", d => d.series.color)
-            .attr("d", d => line(d.values))),
+            .attr("d", d => line(d.values) ?? "")),
         exit => exit.transition(transition).attr("opacity", 0).remove()
       );
 
-    // Dots
     const maxTotal = d3.max(pathData, (d) => d3.max(d.values, (v) => v.total)) || 1;
     const radiusScale = d3.scaleSqrt().domain([0, maxTotal]).range([4, 10]);
 
-    const dotsData = pathData.flatMap((d) =>
+    const dotsData: DotPoint[] = pathData.flatMap((d) =>
       d.values.map((v) => ({
         ...v,
         color: d.series.color,
@@ -207,14 +230,14 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
       }))
     );
 
-    const dotsLayer = gMain.select(".dots-layer");
-    dotsLayer.selectAll(".dot")
+    const dotsLayer = gMain.select<SVGGElement>(".dots-layer");
+    dotsLayer.selectAll<SVGCircleElement, DotPoint>(".dot")
       .data(dotsData, (d) => `${d.countryCode}-${d.year}`)
       .join(
         enter => enter.append("circle")
           .attr("class", "dot")
           .attr("fill", d => d.color)
-          .attr("cx", d => xScale(d.year))
+          .attr("cx", d => xScale(d.year) ?? margin.left)
           .attr("cy", d => yScale(0))
           .attr("r", 0)
           .attr("stroke", "#11111b")
@@ -224,14 +247,13 @@ const Linechart = ({ countryData, dictionaryData, setTooltipState }) => {
         update => update
           .call(update => update.transition(transition)
             .attr("fill", d => d.color)
-            .attr("cx", d => xScale(d.year))
+            .attr("cx", d => xScale(d.year) ?? margin.left)
             .attr("cy", d => yScale(d.total))
             .attr("r", d => d.r)),
         exit => exit.transition(transition).attr("r", 0).remove()
       );
 
-    // Tooltips (outside transition for directness)
-    svg.selectAll(".dot")
+    svg.selectAll<SVGCircleElement, DotPoint>(".dot")
       .on("mouseover", (event, d) => {
         setTooltipState({
           show: true,

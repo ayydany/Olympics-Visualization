@@ -1,22 +1,25 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import * as d3 from "d3";
-import { Responsive as ResponsiveGridLayout, Layouts } from "react-grid-layout";
+import { Responsive as ResponsiveGridLayout } from "react-grid-layout";
+import type { ResponsiveLayouts } from "react-grid-layout";
 import { 
-  IconButton, 
   Menu, 
   MenuItem, 
   FormControlLabel, 
   Checkbox, 
   Box, 
+  Button,
   Typography,
   Tooltip as MuiTooltip
 } from "@mui/material";
-import { Settings as SettingsIcon, DragIndicator as DragIcon } from "@mui/icons-material";
+import { Settings as SettingsIcon, OpenWith as ReorderIcon } from "@mui/icons-material";
 
 import Header from "@/features/dashboard/components/Header";
 import Bubblechart from "@/features/dashboard/components/Bubblechart";
 import Linechart from "@/features/dashboard/components/Linechart";
+import PopulationEfficiencyChart from "@/features/dashboard/components/PopulationEfficiencyChart";
 import Scatterplot from "@/features/dashboard/components/Scatterplot";
+import StackedMedalBars from "@/features/dashboard/components/StackedMedalBars";
 import Worldmap from "@/features/dashboard/components/Worldmap";
 import Tooltip from "@/components/Tooltip";
 import { fetchData } from "@/utils/api";
@@ -35,6 +38,8 @@ const MainComponent: React.FC = () => {
   const [populationData, setPopulationData] = useState<any[] | null>(null);
   const [worldGeo, setWorldGeo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isReorderMode, setIsReorderMode] = useState(false);
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
@@ -44,6 +49,8 @@ const MainComponent: React.FC = () => {
     bubblechart: true,
     scatterplot: true,
     linechart: true,
+    stackedMedals: true,
+    populationEfficiency: true,
   });
 
   const [tooltipState, setTooltipState] = useState<TooltipState>({
@@ -116,43 +123,55 @@ const MainComponent: React.FC = () => {
     setVisibleCharts(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const initialLayouts: Layouts = {
+  const initialLayouts: ResponsiveLayouts = {
     lg: [
-      { i: "worldmap", x: 0, y: 0, w: 6, h: 15 },
-      { i: "bubblechart", x: 6, y: 0, w: 6, h: 15 },
-      { i: "scatterplot", x: 0, y: 15, w: 6, h: 15 },
-      { i: "linechart", x: 6, y: 15, w: 6, h: 15 },
+      { i: "worldmap", x: 0, y: 0, w: 6, h: 15, static: false },
+      { i: "bubblechart", x: 6, y: 0, w: 6, h: 15, static: false },
+      { i: "scatterplot", x: 0, y: 15, w: 6, h: 15, static: false },
+      { i: "linechart", x: 6, y: 15, w: 6, h: 15, static: false },
+      { i: "stackedMedals", x: 0, y: 30, w: 6, h: 13, static: false },
+      { i: "populationEfficiency", x: 6, y: 30, w: 6, h: 13, static: false },
     ],
     md: [
-      { i: "worldmap", x: 0, y: 0, w: 5, h: 15 },
-      { i: "bubblechart", x: 5, y: 0, w: 5, h: 15 },
-      { i: "scatterplot", x: 0, y: 15, w: 5, h: 15 },
-      { i: "linechart", x: 5, y: 15, w: 5, h: 15 },
+      { i: "worldmap", x: 0, y: 0, w: 5, h: 15, static: false },
+      { i: "bubblechart", x: 5, y: 0, w: 5, h: 15, static: false },
+      { i: "scatterplot", x: 0, y: 15, w: 5, h: 15, static: false },
+      { i: "linechart", x: 5, y: 15, w: 5, h: 15, static: false },
+      { i: "stackedMedals", x: 0, y: 30, w: 5, h: 13, static: false },
+      { i: "populationEfficiency", x: 5, y: 30, w: 5, h: 13, static: false },
     ],
     sm: [
-      { i: "worldmap", x: 0, y: 0, w: 6, h: 12 },
-      { i: "bubblechart", x: 0, y: 12, w: 6, h: 12 },
-      { i: "scatterplot", x: 0, y: 24, w: 6, h: 12 },
-      { i: "linechart", x: 0, y: 36, w: 6, h: 12 },
+      { i: "worldmap", x: 0, y: 0, w: 6, h: 12, static: false },
+      { i: "bubblechart", x: 0, y: 12, w: 6, h: 12, static: false },
+      { i: "scatterplot", x: 0, y: 24, w: 6, h: 12, static: false },
+      { i: "linechart", x: 0, y: 36, w: 6, h: 12, static: false },
+      { i: "stackedMedals", x: 0, y: 48, w: 6, h: 11, static: false },
+      { i: "populationEfficiency", x: 0, y: 59, w: 6, h: 11, static: false },
     ],
     xs: [
-      { i: "worldmap", x: 0, y: 0, w: 4, h: 10 },
-      { i: "bubblechart", x: 0, y: 10, w: 4, h: 10 },
-      { i: "scatterplot", x: 0, y: 20, w: 4, h: 10 },
-      { i: "linechart", x: 0, y: 30, w: 4, h: 10 },
+      { i: "worldmap", x: 0, y: 0, w: 4, h: 10, static: false },
+      { i: "bubblechart", x: 0, y: 10, w: 4, h: 10, static: false },
+      { i: "scatterplot", x: 0, y: 20, w: 4, h: 10, static: false },
+      { i: "linechart", x: 0, y: 30, w: 4, h: 10, static: false },
+      { i: "stackedMedals", x: 0, y: 40, w: 4, h: 10, static: false },
+      { i: "populationEfficiency", x: 0, y: 50, w: 4, h: 10, static: false },
     ],
     xss: [
-      { i: "worldmap", x: 0, y: 0, w: 2, h: 10 },
-      { i: "bubblechart", x: 0, y: 10, w: 2, h: 10 },
-      { i: "scatterplot", x: 0, y: 20, w: 2, h: 10 },
-      { i: "linechart", x: 0, y: 30, w: 2, h: 10 },
+      { i: "worldmap", x: 0, y: 0, w: 2, h: 10, static: false },
+      { i: "bubblechart", x: 0, y: 10, w: 2, h: 10, static: false },
+      { i: "scatterplot", x: 0, y: 20, w: 2, h: 10, static: false },
+      { i: "linechart", x: 0, y: 30, w: 2, h: 10, static: false },
+      { i: "stackedMedals", x: 0, y: 40, w: 2, h: 10, static: false },
+      { i: "populationEfficiency", x: 0, y: 50, w: 2, h: 10, static: false },
     ],
   };
 
   const filteredLayouts = useMemo(() => {
-    const newLayouts: Layouts = {};
+    const newLayouts: ResponsiveLayouts = {};
     Object.keys(initialLayouts).forEach(bp => {
-      newLayouts[bp] = initialLayouts[bp].filter(item => visibleCharts[item.i as keyof typeof visibleCharts]);
+      newLayouts[bp] = (initialLayouts[bp] ?? []).filter(
+        item => visibleCharts[item.i as keyof typeof visibleCharts]
+      );
     });
     return newLayouts;
   }, [visibleCharts]);
@@ -161,22 +180,51 @@ const MainComponent: React.FC = () => {
     <div className="main-container flex flex-col h-screen bg-ctp-base text-ctp-text overflow-hidden relative">
       <Header dictionaryData={dictionaryData} />
       
-      {/* MUI Settings Menu - Absolute Top Right */}
-      <Box sx={{ position: 'fixed', top: 12, right: 12, left: 'auto', zIndex: 2000 }}>
-        <MuiTooltip title="Configure Visualizations">
-          <IconButton 
-            onClick={handleMenuClick}
-            sx={{ 
-              backgroundColor: 'background.paper',
-              border: '1px solid',
-              borderColor: 'divider',
+      <Box sx={{ position: 'fixed', top: 12, right: 12, left: 'auto', zIndex: 2000, display: 'flex', gap: 1 }}>
+        <MuiTooltip title={isReorderMode ? "Exit Reorder Mode" : "Reorder Visualizations"}>
+          <Button
+            onClick={() => {
+              setIsReorderMode((current) => !current);
+              setTooltipState({ show: false, content: "", x: 0, y: 0 });
+            }}
+            aria-pressed={isReorderMode}
+            startIcon={<ReorderIcon />}
+            variant={isReorderMode ? "contained" : "outlined"}
+            sx={{
+              minHeight: 40,
+              borderRadius: '12px',
+              backgroundColor: isReorderMode ? 'primary.main' : 'background.paper',
               boxShadow: 4,
+              fontWeight: 800,
+              px: 1.5,
+              '&:hover': {
+                backgroundColor: isReorderMode ? 'primary.dark' : 'action.hover',
+                transform: 'scale(1.1)'
+              },
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {isReorderMode ? "Done" : "Reorder"}
+          </Button>
+        </MuiTooltip>
+        <MuiTooltip title="Configure Visualizations">
+          <Button
+            onClick={handleMenuClick}
+            startIcon={<SettingsIcon />}
+            variant={openMenu ? "contained" : "outlined"}
+            sx={{ 
+              minHeight: 40,
+              borderRadius: '12px',
+              backgroundColor: openMenu ? 'primary.main' : 'background.paper',
+              boxShadow: 4,
+              fontWeight: 800,
+              px: 1.5,
               '&:hover': { backgroundColor: 'action.hover', transform: 'scale(1.1)' },
               transition: 'all 0.2s ease'
             }}
           >
-            <SettingsIcon color="primary" />
-          </IconButton>
+            Settings
+          </Button>
         </MuiTooltip>
         
         <Menu
@@ -205,7 +253,9 @@ const MainComponent: React.FC = () => {
             worldmap: "World Map",
             bubblechart: "Bubble Chart",
             scatterplot: "Scatter Plot",
-            linechart: "Line Chart"
+            linechart: "Line Chart",
+            stackedMedals: "Medal Bars",
+            populationEfficiency: "Population Efficiency"
           }).map(([id, label]) => (
             <MenuItem key={id} sx={{ py: 0.5 }}>
               <FormControlLabel
@@ -238,39 +288,51 @@ const MainComponent: React.FC = () => {
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xss: 2 }}
             rowHeight={20}
             width={gridWidth}
-            draggableHandle=".drag-handle"
+            dragConfig={{ enabled: isReorderMode, threshold: 3 }}
             margin={[10, 10]}
+            onResizeStart={() => setIsResizing(true)}
+            onResizeStop={() => setIsResizing(false)}
           >
             {visibleCharts.worldmap && (
-              <div key="worldmap" className="vis-cell group">
-                <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
-                  <DragIcon sx={{ fontSize: 24 }} />
+              <div key="worldmap" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
+                <div className="viz-content w-full h-full pointer-events-auto">
+                  <Worldmap dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} worldGeo={worldGeo!} isResizing={isResizing} />
                 </div>
-                <Worldmap dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} worldGeo={worldGeo!} />
               </div>
             )}
             {visibleCharts.bubblechart && (
-              <div key="bubblechart" className="vis-cell group">
-                <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
-                  <DragIcon sx={{ fontSize: 24 }} />
+              <div key="bubblechart" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
+                <div className="viz-content w-full h-full pointer-events-auto">
+                  <Bubblechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
                 </div>
-                <Bubblechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.scatterplot && (
-              <div key="scatterplot" className="vis-cell group">
-                <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
-                  <DragIcon sx={{ fontSize: 24 }} />
+              <div key="scatterplot" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
+                <div className="viz-content w-full h-full pointer-events-auto">
+                  <Scatterplot countryData={countryData!} populationData={populationData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
                 </div>
-                <Scatterplot countryData={countryData!} populationData={populationData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
               </div>
             )}
             {visibleCharts.linechart && (
-              <div key="linechart" className="vis-cell group">
-                <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing z-[100] flex items-center justify-center text-ctp-mauve/50 hover:text-ctp-mauve hover:scale-125" style={{ top: '16px', right: '16px', left: 'auto' }}>
-                  <DragIcon sx={{ fontSize: 24 }} />
+              <div key="linechart" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
+                <div className="viz-content w-full h-full pointer-events-auto">
+                  <Linechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
                 </div>
-                <Linechart countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} />
+              </div>
+            )}
+            {visibleCharts.stackedMedals && (
+              <div key="stackedMedals" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
+                <div className="viz-content w-full h-full pointer-events-auto">
+                  <StackedMedalBars countryData={countryData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
+                </div>
+              </div>
+            )}
+            {visibleCharts.populationEfficiency && (
+              <div key="populationEfficiency" className={`vis-cell group ${isReorderMode ? "is-reordering" : ""}`}>
+                <div className="viz-content w-full h-full pointer-events-auto">
+                  <PopulationEfficiencyChart countryData={countryData!} populationData={populationData!} dictionaryData={dictionaryData!} setTooltipState={updateTooltipState} isResizing={isResizing} />
+                </div>
               </div>
             )}
           </ResponsiveGridLayout>

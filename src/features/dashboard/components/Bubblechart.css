@@ -25,6 +25,13 @@
     user-select: none;
 }
 
+#bubblechart #reset-view-container {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+}
+
 #bubblechart #back-icon-container.hidden {
     display: none;
 }

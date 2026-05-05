@@ -3,7 +3,6 @@
   height: 100vh;
 }
 
-/* Grid area should scroll if items exceed height, but RGL handles its own sizing */
 .grid-container-wrapper {
   overflow-y: auto;
   flex-grow: 1;
@@ -14,7 +13,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  position: relative; /* CRITICAL: ensures children like .drag-handle use this as anchor */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,15 +25,23 @@
   border-color: var(--ctp-surface1);
 }
 
-.drag-handle {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  top: 16px !important;
-  right: 16px !important;
-  left: auto !important;
-  z-index: 50 !important;
+.vis-cell.is-reordering {
+  border-color: var(--ctp-mauve);
+  cursor: grab;
 }
 
-/* React Grid Layout overrides */
+.vis-cell.is-reordering:active {
+  cursor: grabbing;
+}
+
+.vis-cell.is-reordering .viz-content {
+  pointer-events: none;
+}
+
+.react-grid-item.react-draggable-dragging .vis-cell {
+  cursor: grabbing;
+}
+
 .react-grid-placeholder {
   background: var(--ctp-surface0) !important;
   border-radius: 12px !important;
@@ -43,10 +50,10 @@
 }
 
 .react-resizable-handle {
-  width: 32px; /* Increased from 24px */
-  height: 32px; /* Increased from 24px */
-  bottom: 4px;  /* Added small offset */
-  right: 4px;   /* Added small offset */
+  width: 44px;
+  height: 44px;
+  bottom: 0px;
+  right: 0px;
   background-image: none !important;
   cursor: nwse-resize;
   z-index: 60 !important;
@@ -55,15 +62,18 @@
 .react-resizable-handle::after {
   content: "";
   position: absolute;
-  right: 8px; /* Increased from 6px */
-  bottom: 8px; /* Increased from 6px */
-  width: 12px; /* Slightly larger icon */
-  height: 12px; /* Slightly larger icon */
-  border-right: 3px solid var(--ctp-surface2);
-  border-bottom: 3px solid var(--ctp-surface2);
-  border-radius: 1px;
+  right: 12px;
+  bottom: 12px;
+  width: 18px;
+  height: 18px;
+  border-right: 4px solid var(--ctp-text);
+  border-bottom: 4px solid var(--ctp-text);
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
 }
 
 .vis-cell:hover .react-resizable-handle::after {
-  border-color: var(--ctp-mauve);
+  border-color: var(--ctp-text);
+  opacity: 1;
 }

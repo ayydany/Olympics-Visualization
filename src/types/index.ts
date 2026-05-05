@@ -28,3 +28,7 @@ export interface TooltipState {
   x: number;
   y: number;
 }
+
+export type TooltipStateSetter = (
+  state: TooltipState | ((prev: TooltipState) => TooltipState)
+) => void;

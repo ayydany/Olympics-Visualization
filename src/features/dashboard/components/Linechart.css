@@ -16,7 +16,6 @@
     fill: var(--ctp-text) !important;
 }
 
-/* Axis Styling for Catppuccin */
 #linechart .xAxis path,
 #linechart .xAxis line,
 #linechart .yAxis path,

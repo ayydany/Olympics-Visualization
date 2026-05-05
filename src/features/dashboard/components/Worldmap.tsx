@@ -8,9 +8,10 @@ interface WorldmapProps {
   dictionaryData: DictionaryEntry[];
   setTooltipState: (state: TooltipState | ((prev: TooltipState) => TooltipState)) => void;
   worldGeo: any;
+  isResizing: boolean;
 }
 
-const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, worldGeo }) => {
+const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, worldGeo, isResizing }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<SVGGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -30,7 +31,7 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
     if (!container) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      if (!entries || entries.length === 0) return;
+      if (!entries || entries.length === 0 || isResizing) return;
       const { width, height } = entries[0].contentRect;
       setDimensions({ width, height });
     });
@@ -38,7 +39,7 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
     resizeObserver.observe(container.parentElement!);
 
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [isResizing]);
 
   useEffect(() => {
     if (dimensions.width === 0 || !svgRef.current || !gRef.current) return;
@@ -48,14 +49,12 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
       .attr("height", dimensions.height);
     const g = d3.select(gRef.current);
 
-    // Setup projection
     const projection = d3.geoMercator()
       .scale(dimensions.width / 6.2)
       .translate([dimensions.width / 2, dimensions.height / 1.5]);
 
     const path = d3.geoPath().projection(projection);
 
-    // Define diagonalHatch pattern in <defs>
     if (svg.select("defs").empty()) {
       const defs = svg.append("defs");
       const pattern = defs.append("pattern")
@@ -66,11 +65,10 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
       
       pattern.append("path")
         .attr("d", "M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2")
-        .attr("stroke", "#45475a") // Surface1
+        .attr("stroke", "#45475a")
         .attr("stroke-width", 0.5);
     }
 
-    // Zoom setup
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 8])
       .on("zoom", (event) => {
@@ -79,7 +77,6 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
 
     svg.call(zoom);
 
-    // Update / Render paths
     const countries = g.selectAll<SVGPathElement, any>(".country")
       .data((worldGeo as any).features);
 
@@ -95,9 +92,9 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
         if (countrySelection.includes(code)) {
           return getCountryColor(code);
         }
-        return "#6c7086"; // Overlay0
+        return "#6c7086";
       })
-      .attr("stroke", "#11111b") // Crust
+      .attr("stroke", "#11111b")
       .attr("stroke-width", 0.5)
       .classed("country-selectable", (d: any) => {
         const name = d.properties.name_long || d.properties.name;
@@ -112,7 +109,7 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
         const code = nameToCode[name];
         if (!code) return;
 
-        d3.select(this).style("stroke", "#cdd6f4").style("stroke-width", 1); // Text
+        d3.select(this).style("stroke", "#cdd6f4").style("stroke-width", 1);
         
         setTooltipState({
           show: true,
@@ -129,7 +126,7 @@ const Worldmap: React.FC<WorldmapProps> = ({ dictionaryData, setTooltipState, wo
         }));
       })
       .on("mouseout", function() {
-        d3.select(this).style("stroke", "#11111b").style("stroke-width", 0.5); // Crust
+        d3.select(this).style("stroke", "#11111b").style("stroke-width", 0.5);
         setTooltipState({ show: false, content: "", x: 0, y: 0 });
       })
       .on("click", (event, d: any) => {

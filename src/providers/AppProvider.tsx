@@ -5,20 +5,20 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#cba6f7', // Mauve
+      main: '#cba6f7',
     },
     secondary: {
-      main: '#89b4fa', // Blue
+      main: '#89b4fa',
     },
     background: {
-      default: '#1e1e2e', // Base
-      paper: '#181825',   // Mantle
+      default: '#1e1e2e',
+      paper: '#181825',
     },
     text: {
-      primary: '#cdd6f4', // Text
-      secondary: '#bac2de', // Subtext1
+      primary: '#cdd6f4',
+      secondary: '#bac2de',
     },
-    divider: '#313244', // Surface0
+    divider: '#313244',
   },
   typography: {
     fontFamily: '"Montserrat", sans-serif',

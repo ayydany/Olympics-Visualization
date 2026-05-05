@@ -43,7 +43,6 @@ const Header: React.FC<HeaderProps> = ({ dictionaryData }) => {
     return "All Sports";
   }, [currentState, sportFilter, disciplineFilter, eventFilter]);
 
-  // Handle ResizeObserver for the slider container
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -70,11 +69,9 @@ const Header: React.FC<HeaderProps> = ({ dictionaryData }) => {
     const startIdx = years.indexOf(yearFilter.start);
     const endIdx = years.indexOf(yearFilter.end);
 
-    // Track
     slider.append("line").attr("class", "track").attr("x1", 0).attr("x2", sliderWidth);
     const trackInset = slider.append("line").attr("class", "track-inset").attr("x1", xScale(startIdx)).attr("x2", xScale(endIdx));
 
-    // Handles
     const handle1 = slider.append("circle").attr("class", "handle").attr("r", 7).attr("cx", xScale(startIdx));
     const handle2 = slider.append("circle").attr("class", "handle").attr("r", 7).attr("cx", xScale(endIdx));
 
@@ -106,7 +103,6 @@ const Header: React.FC<HeaderProps> = ({ dictionaryData }) => {
         })
       );
 
-    // Ticks (Bottom)
     const tickStep = width < 600 ? 4 : width < 900 ? 2 : 1;
     slider.append("g").attr("class", "ticks unselectable")
       .attr("transform", "translate(0, 18)")

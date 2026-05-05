@@ -122,7 +122,7 @@ const useYearStore = create<YearState>((set, get) => ({
   getCountryColor: (code) => {
     const selection = get().countrySelection;
     const idx = selection.indexOf(code);
-    if (idx === -1) return "#313244"; // Surface0
+    if (idx === -1) return "#313244";
     return countryColors[idx % countryColors.length];
   },
 }));

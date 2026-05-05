@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 :root {
-  /* Catppuccin Mocha Palette */
   --ctp-rosewater: #f5e0dc;
   --ctp-flamingo: #f2cdcd;
   --ctp-pink: #f5c2e7;
@@ -60,7 +59,6 @@ body,
   height: 100%;
 }
 
-/* Scrollbar Styling for Mocha */
 ::-webkit-scrollbar {
   width: 10px;
 }
