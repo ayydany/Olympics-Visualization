@@ -4,7 +4,7 @@ A modern, interactive data visualization dashboard for Summer Olympics historica
 
 This visualization was initially developed as a project for the Masters Course Information Visualization at Lisbon Técnico but turned into sort of a hobby of mine.
 
-## 🚀 Features
+## Features
 
 - **Interactive World Map:** Custom D3.js Mercator projection with zoom/pan and country selection.
 - **Dynamic Bubble Chart:** Force-directed simulation to explore medals by Sport, Discipline, and Event.
@@ -16,7 +16,7 @@ This visualization was initially developed as a project for the Masters Course I
 - **Responsive Layout:** Dynamic grid system powered by `react-grid-layout`.
 - **Asynchronous Data:** High-performance runtime fetching of CSV/JSON datasets.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework:** [React 18](https://react.dev/) with 100% [TypeScript](https://www.typescriptlang.org/) application code
 - **Build Tool:** [Vite](https://vitejs.dev/)
@@ -27,7 +27,7 @@ This visualization was initially developed as a project for the Masters Course I
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/), component CSS, and [Catppuccin](https://catppuccin.com/)
 - **Deployment:** GitHub Pages via GitHub Actions, with custom domain support
 
-## 📦 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -64,7 +64,7 @@ With Bun:
 bun run build
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
